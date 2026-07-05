@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign } from "lucide-react";
+import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -202,6 +202,20 @@ const formatElapsed = (sec: number) => {
   return `${m}m ${s.toString().padStart(2, "0")}s`;
 };
 
+// Pick a phase icon from the status text so the indicator itself conveys what's happening,
+// instead of a generic spinner. Pulses to show it's active.
+const StageIcon = ({ status }: { status: string }) => {
+  const s = (status || "").toLowerCase();
+  const cls = "w-4 h-4 mt-0.5 shrink-0 animate-pulse";
+  if (/loss|exposure|ground-up|structures|damage/.test(s)) return <DollarSign className={cls} />;
+  if (/footprint|building/.test(s)) return <Building2 className={cls} />;
+  if (/metric|footprint & metrics|extracting/.test(s)) return <BarChart3 className={cls} />;
+  if (/fire-spread|running scenario|scenario/.test(s)) return <Flame className={cls} />;
+  if (/fetch|prepar|weather|terrain|fuel|wind|bundle|downscal|3dep|hrrr|landfire/.test(s))
+    return <Download className={cls} />;
+  return <Loader2 className="w-4 h-4 mt-0.5 shrink-0 animate-spin" />; // submitting / unknown
+};
+
 const StageStatus = ({ status, startedAt }: { status: string; startedAt?: number }) => {
   const [stageStart, setStageStart] = useState<number>(() => Date.now());
   const [now, setNow] = useState<number>(() => Date.now());
@@ -261,7 +275,7 @@ const LiveWildfire = () => {
   const [error, setError] = useState<string>("");
   const [showSettings, setShowSettings] = useState(false);
   const [apiBaseUrl, setApiBaseUrl] = useState<string>(
-    () => localStorage.getItem("wf_api_base") || "https://13.218.215.28.nip.io"
+    () => localStorage.getItem("wf_api_base") || "http://localhost:8000"
   );
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem("wf_api_key") || "");
 
@@ -790,10 +804,11 @@ const LiveWildfire = () => {
   }, []);
 
   // ============ SESSION-BASED CHAT ============
-  // Decide whether the session needs OSM building footprints. This is a
-  // prepare-time, session-wide setting and CANNOT be changed once the session
-  // is open — so we upgrade to a fresh session whenever a turn needs buildings
-  // but the current session was opened without them.
+  // NOTE: the backend now builds building footprints lazily from NSI the first time a
+  // building-spread scenario runs (and ignores the `fetch_buildings` request flag), so we
+  // NEVER need to re-open a session for buildings. A session is reused for the whole fire;
+  // only a NEW polygon opens a new session. `needsBuildingsForText` now only tweaks the
+  // "opening session…" status label — it does not affect session reuse.
   const needsBuildingsForText = (text: string): boolean => {
     const t = text.toLowerCase();
     // Explicit building / loss / urban / WUI intent → true
@@ -819,7 +834,9 @@ const LiveWildfire = () => {
         ignition_date: isoDate,
         duration_hours: Number(duration) || 24,
         margin_km: 30,
-        fetch_buildings: fetchBuildings,
+        // Backend ignores this and builds footprints lazily from NSI; kept false so prepare
+        // never triggers the old (slow) OSM path.
+        fetch_buildings: false,
         use_windninja: useWindninja,
       };
       console.log("[wildfire] POST /session body:", { ...body, polygon: "<polygon>" });
@@ -1178,6 +1195,10 @@ const LiveWildfire = () => {
           startedAt: Date.now(),
         });
       }
+      // No-auth / no-persistence mode: saveMessage returns null (no Supabase user). Use a
+      // client-side id so the UI can still track the message and poll (updateAssistantById
+      // matches in-memory by id; the Supabase update just no-ops with no matching row).
+      if (!msgId) msgId = crypto.randomUUID();
       setMessages((prev) => {
         const next = [...prev];
         for (let i = next.length - 1; i >= 0; i--) {
@@ -1196,8 +1217,7 @@ const LiveWildfire = () => {
         return next;
       });
 
-      if (msgId) pollJob(jobId, sid, msgId, convId);
-      else setChatSending(false);
+      pollJob(jobId, sid, msgId, convId);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [apiBaseUrl, apiKey, polygon, chatSending, conversationId, sessionId, createConversation, saveMessage, openSession, pollJob, updateAssistantById],
@@ -1674,7 +1694,7 @@ const LiveWildfire = () => {
                   <div className="text-sm text-foreground space-y-2 max-w-full">
                     {m.pending ? (
                       <div className="flex items-start gap-2 text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin mt-0.5 shrink-0" />
+                        <StageIcon status={m.status || ""} />
                         <StageStatus status={m.status || ""} startedAt={m.startedAt} />
                       </div>
                     ) : m.error ? (

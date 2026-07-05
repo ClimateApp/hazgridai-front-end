@@ -41,7 +41,10 @@ const Index = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("mission");
-  const isGuest = !user;
+  // Local-dev bypass: set VITE_DISABLE_AUTH=true in .env to use all tabs (incl. Live Wildfire)
+  // without logging in. Chat history just won't persist to Supabase (no user).
+  const authDisabled = import.meta.env.VITE_DISABLE_AUTH === "true";
+  const isGuest = !authDisabled && !user;
 
   useEffect(() => {
     if (!loading && isGuest && activeTab !== "mission") {
