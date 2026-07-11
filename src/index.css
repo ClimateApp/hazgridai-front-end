@@ -122,3 +122,35 @@
     border-radius: 3px;
   }
 }
+
+/* Evacuation map labels (Leaflet permanent tooltips) */
+.evac-area-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-weight: 700;
+  font-size: 12px;
+  color: #374151;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+}
+.evac-area-label::before { display: none; }
+.evac-road-label {
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  box-shadow: none;
+  font-size: 10px;
+  color: #b91c1c;
+  padding: 0 3px;
+  border-radius: 3px;
+}
+.evac-road-label::before { display: none; }
+.evac-road-label-open {
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  box-shadow: none;
+  font-size: 10px;
+  color: #15803d;
+  padding: 0 3px;
+  border-radius: 3px;
+}
+.evac-road-label-open::before { display: none; }

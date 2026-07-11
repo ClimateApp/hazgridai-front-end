@@ -48,6 +48,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "fflate": "^0.8.3",
     "framer-motion": "^12.24.0",
     "georaster": "^1.6.0",
     "georaster-layer-for-leaflet": "^4.1.2",

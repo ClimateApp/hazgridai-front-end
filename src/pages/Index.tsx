@@ -6,7 +6,7 @@ import fireStochasticDemo from "@/assets/fire_stochastic_demo.mp4.asset.json";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, ChevronDown } from "lucide-react";
+import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,8 +46,10 @@ const Index = () => {
   const authDisabled = import.meta.env.VITE_DISABLE_AUTH === "true";
   const isGuest = !authDisabled && !user;
 
+  const guestTabs = ["mission", "validation", "demos"];   // public tabs (no sign-in required)
+
   useEffect(() => {
-    if (!loading && isGuest && activeTab !== "mission") {
+    if (!loading && isGuest && !guestTabs.includes(activeTab)) {
       setActiveTab("mission");
     }
   }, [loading, isGuest, activeTab]);
@@ -58,7 +60,7 @@ const Index = () => {
   };
 
   const handleTabChange = (value: string) => {
-    if (isGuest && value !== "mission") {
+    if (isGuest && !guestTabs.includes(value)) {
       navigate("/auth");
       return;
     }
@@ -80,12 +82,12 @@ const Index = () => {
           {/* Active tab's sidebar + content */}
           <div className="flex flex-1 w-full h-screen">
             {/* The chat components render their own sidebar; we mount only the active one */}
-            <div className={`flex flex-1 w-full flex-col ${activeTab === "mission" ? "" : "md:pl-[16rem]"}`}>
+            <div className={`flex flex-1 w-full flex-col ${["mission", "validation", "demos"].includes(activeTab) ? "" : "md:pl-[16rem]"}`}>
               <header className="flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
                 <div className="relative px-4 py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    {activeTab !== "mission" && <SidebarTrigger className="-ml-1" />}
-                    {activeTab === "mission" && (
+                    {!["mission", "validation", "demos"].includes(activeTab) && <SidebarTrigger className="-ml-1" />}
+                    {["mission", "validation", "demos"].includes(activeTab) && (
                       <img src={hazgridLogo} alt="HazGrid ai" className="h-16 w-auto -my-2" />
                     )}
                   </div>
@@ -94,6 +96,22 @@ const Index = () => {
                        <TabsTrigger value="mission" className="gap-1.5">
                          Mission
                        </TabsTrigger>
+                       <TabsTrigger value="validation" className="gap-1.5">
+                         <Target className="w-4 h-4" />
+                         Validation and Efficiency
+                       </TabsTrigger>
+                       <TabsTrigger value="demos" className="gap-1.5">
+                         <MonitorPlay className="w-4 h-4" />
+                         Demos
+                       </TabsTrigger>
+                         <TabsTrigger value="live-wildfire" className="gap-1.5">
+                           <Flame className="w-4 h-4" />
+                           Wildfire Event, Losses &amp; Evacuation Planning
+                         </TabsTrigger>
+                          <TabsTrigger value="wildfire" className="gap-1.5">
+                            <Flame className="w-4 h-4" />
+                            Wildfire Risk
+                          </TabsTrigger>
                         <TabsTrigger value="hurricane" className="gap-1.5">
                           <Wind className="w-4 h-4" />
                           Coastal Flood AI Model
@@ -102,14 +120,6 @@ const Index = () => {
                           <Waves className="w-4 h-4" />
                           Flood Risk
                         </TabsTrigger>
-                          <TabsTrigger value="wildfire" className="gap-1.5">
-                            <Flame className="w-4 h-4" />
-                            Wildfire Event Simulation
-                          </TabsTrigger>
-                         <TabsTrigger value="live-wildfire" className="gap-1.5">
-                           <Flame className="w-4 h-4" />
-                           Live Wildfire
-                         </TabsTrigger>
                       </TabsList>
                    </div>
                   <div className="flex items-center gap-3">
@@ -138,37 +148,35 @@ const Index = () => {
                       {/* Hero */}
                       <section className="text-center mb-16">
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6">
-                          AI framework for decision-ready hazard intelligence for climate and property risk
+                          Decision-ready hazard intelligence for climate and property risk
                         </h1>
                         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                           <strong className="font-semibold text-foreground">HazGrid ai</strong> combines geospatial
-                          models, regulatory-grade hazard data, and modern AI within an{" "}
-                          <strong className="font-semibold text-foreground">agentic workflow</strong>, enabling
-                          stakeholders to quantify flood, wind and wildfire loss potential at specific locations. It
-                          also supports hurricane-driven coastal flood simulations using a{" "}
-                          <strong className="font-semibold text-foreground">cutting-edge AI model</strong> that delivers
-                          accuracy comparable to sophisticated numerical models while running at least 130×-180x faster.
+                          models, regulatory-grade hazard data, and modern AI in an agentic workflow that quantifies
+                          flood, wind, and wildfire risk — from a single address to an entire portfolio. Our AI coastal
+                          flood model matches the accuracy of sophisticated numerical models while running{" "}
+                          <strong className="font-semibold text-foreground">130–180× faster</strong>.
+                        </p>
+                        <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto mt-4">
+                          Our mission is to make catastrophe-grade risk modeling fast, transparent, and accessible to
+                          everyone who has to make decisions about natural-hazard risk.
                         </p>
                       </section>
 
                       {/* Pillars */}
                       <section className="mb-16">
-                        <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Capability Pillars</h2>
-                        <div className="grid md:grid-cols-3 gap-6">
+                        <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Capabilities</h2>
+                        <div className="grid md:grid-cols-2 gap-6">
                           <Card className="p-6">
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Waves className="w-5 h-5 text-primary-foreground" />
+                              <Wind className="w-5 h-5 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              Coastal flood AI model: event-based exposure
-                            </h3>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Coastal flood AI model</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              We developed an AI model with cutting edge technology that simulates hurricane-induced
-                              coastal flood with accuracy comparable to the sophisticated numerical models but 130x-180x
-                              faster. With the current setup and for the entire State of Florida, each hurricane is
-                              simulated within 15-20 sec using 4 CPUs. For the same geographic extent and using 100
-                              CPUs, the AI model can simulate a 10,000-year stochastic catalog within 2-2.7 hours. We
-                              have a clear path to optimize the computational time per hurricane to under 1 sec.
+                              Our AI model simulates hurricane-induced coastal flooding with accuracy comparable to
+                              sophisticated numerical models — at 130–180× the speed. A Florida-wide hurricane runs in
+                              seconds, and a full 10,000-year stochastic catalog completes in hours instead of weeks,
+                              turning event-based exposure analysis into an interactive workflow.
                             </p>
                           </Card>
 
@@ -176,13 +184,9 @@ const Index = () => {
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
                               <Waves className="w-5 h-5 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              Coastal flood damage: return-period exposure
-                            </h3>
-
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Coastal flood damage</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              Flooding causes significant financial damage across the U.S. every year, with recent
-                              estimates showing average annual flood losses of about $46 billion over the past decade (
+                              U.S. flood losses have averaged about $46 billion per year over the past decade (
                               <a
                                 href="https://www.cbo.gov/publication/60803"
                                 target="_blank"
@@ -191,12 +195,9 @@ const Index = () => {
                               >
                                 ref
                               </a>
-                              ).
-                            </p>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              We sample return-period flood levels (e.g., 2- through 500-year horizons), combine them
-                              with site-specific building factors , and estimate flood depth to calculate groundup and
-                              gross losses. Delivered as single-point queries and CSV batch enrichment for losses.
+                              ). We sample return-period flood levels (2- through 500-year horizons), combine them with
+                              site-specific building characteristics, and estimate depth-driven ground-up and gross
+                              losses — delivered as single-point queries or CSV batch enrichment for full portfolios.
                             </p>
                           </Card>
 
@@ -206,9 +207,7 @@ const Index = () => {
                             </div>
                             <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire financial risk</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              Wildfires impose a major financial burden on the U.S. every year, with NIST estimating the
-                              annualized economic burden of wildfire at $71.1 billion to $347.8 billion in 2016 dollars
-                              (
+                              NIST estimates the annualized economic burden of wildfire at $71 billion to $348 billion (
                               <a
                                 href="https://www.nist.gov/publications/costs-and-losses-wildfires"
                                 target="_blank"
@@ -217,21 +216,140 @@ const Index = () => {
                               >
                                 ref
                               </a>
-                              ).
+                              ). We translate annual burn probability, risk to structures, and replacement value into
+                              Expected Annual Loss and multi-horizon ground-up loss estimates (2- through 100-year
+                              windows), for single points or full CSV uploads — with gross losses on our roadmap.
                             </p>
+                          </Card>
+
+                          <Card className="p-6">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
+                              <Workflow className="w-5 h-5 text-primary-foreground" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Live wildfire scenario analysis</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              We translate annual burn probability, risk to structures, and structure replacement value
-                              into Expected Annual Loss (EAL) and multi-horizon structural groundup loss estimates
-                              (e.g., 2- through 100-year windows), for points or full CSV uploads. We have plans to add
-                              gross losses to wildfire.
+                              Draw a fire on the map and interrogate it in plain language. Our HazFire engine simulates
+                              spread under real or hypothetical weather, prices structure losses, and maps evacuation
+                              access — so wind what-ifs, containment strategies, and building-hardening questions are
+                              answered with simulations in minutes, not days.
+                            </p>
+                          </Card>
+                        </div>
+                        <p className="text-sm text-muted-foreground text-center mt-6">
+                          Every claim above is benchmarked against numerical models and FEMA maps —{" "}
+                          <button onClick={() => setActiveTab("validation")} className="underline hover:text-foreground">
+                            see the Validation page
+                          </button>
+                          .
+                        </p>
+                      </section>
+
+
+
+                      {/* Roadmap */}
+                      <section className="mb-16 max-w-5xl mx-auto">
+                        <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Roadmap</h2>
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <Card className="p-6">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">
+                              Expand coastal flood coverage
+                            </h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Extend the AI coastal flood model from Florida to the full U.S. East Coast and Gulf Coast,
+                              bringing event-based surge and inundation simulation to a broader set of coastal
+                              communities.
+                            </p>
+                          </Card>
+
+                          <Card className="p-6">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Inland flood workflow</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Develop an AI-powered inland flood pipeline that simulates and assesses rainfall-driven
+                              and riverine flooding, closing the gap between coastal and inland peril coverage.
+                            </p>
+                          </Card>
+
+                          <Card className="p-6">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire AI model</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Build a wildfire AI model beginning with California, then expand toward nationwide U.S.
+                              coverage to deliver high-resolution burn probability and fire behavior predictions.
+                            </p>
+                          </Card>
+
+                          <Card className="p-6">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">
+                              High-resolution loss modeling
+                            </h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Integrate a sophisticated loss engine that supports complex insurance policy structures
+                              and estimates losses at a 10-meter grid resolution for granular, portfolio-grade risk
+                              quantification.
                             </p>
                           </Card>
                         </div>
                       </section>
 
-                      {/* AI Risk Model Accuracy */}
+                      {/* Who can benefit from HazGrid ai */}
+                      <section className="max-w-3xl mx-auto text-center pb-8">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">Who can benefit from HazGrid ai</h2>
+                        <p className="text-muted-foreground leading-relaxed">
+                          HazGrid ai is designed for organizations that need interactive, faster but precise, more
+                          transparent, and location-specific insight into climate and natural hazard risk. Insurers,
+                          reinsurers, risk managers, lenders, real estate investors, infrastructure owners, utilities,
+                          emergency planners, and government agencies can use HazGrid ai to evaluate flood and wildfire
+                          exposure, estimate potential financial losses, compare risk across properties or portfolios,
+                          and support better decisions around underwriting, pricing, mitigation, investment, and
+                          resilience planning. By combining high-resolution geospatial data, AI-powered hazard
+                          simulation, and advanced loss modeling, HazGrid ai helps stakeholders move from static risk
+                          maps to actionable, property-level intelligence.
+                        </p>
+                      </section>
+
+                      {/* CTA */}
+                      <section className="max-w-3xl mx-auto text-center pb-16">
+                        <div className="rounded-2xl border border-border bg-card p-8 md:p-10">
+                          <h2 className="text-2xl font-semibold text-foreground mb-3">See it in action</h2>
+                          <p className="text-muted-foreground mb-6">
+                            Watch short demos of each capability, or sign in to run live simulations yourself.
+                          </p>
+                          <div className="flex flex-wrap items-center justify-center gap-3">
+                            <Button size="lg" onClick={() => setActiveTab("demos")} className="gap-2">
+                              <MonitorPlay className="w-4 h-4" />
+                              Watch the demos
+                            </Button>
+                            {isGuest ? (
+                              <Button size="lg" variant="outline" onClick={() => navigate("/auth")}>
+                                Sign in for live access
+                              </Button>
+                            ) : (
+                              <Button size="lg" variant="outline" onClick={() => setActiveTab("live-wildfire")}>
+                                Open Wildfire Event, Losses &amp; Evacuation Planning
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent
+                  value="validation"
+                  className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden overflow-auto"
+                >
+                  <div className="flex-1 overflow-auto">
+                    <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
+                      <section className="text-center mb-12">
+                        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-4">
+                          Validation and Efficiency
+                        </h1>
+                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                          How our models are benchmarked — station-level accuracy against numerical models,
+                          100-year flood extents against FEMA maps, and run-time comparisons.
+                        </p>
+                      </section>
                       <section className="mb-16">
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="multiple" defaultValue={["accuracy", "speed"]} className="w-full">
                           <AccordionItem value="accuracy" className="border rounded-lg px-6">
                             <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
                               AI Coastal Flood Model Accuracy
@@ -253,8 +371,7 @@ const Index = () => {
                                     </li>
                                     <li className="pl-4 border-l-2 border-accent/40">
                                       <span className="font-semibold text-foreground">Tide</span> is the regular
-                                      astronomical variation in sea level. It raises or lowers the background water
-                                      water level with non-linear interaction with other components, meaning the same
+                                      astronomical variation in sea level. It raises or lowers the background water level with non-linear interaction with other components, meaning the same
                                       storm may produce more or less severe flooding depending on tide levels.
                                     </li>
                                     <li className="pl-4 border-l-2 border-accent/40">
@@ -289,9 +406,9 @@ const Index = () => {
                                 <div className="border-t border-border" />
 
                                 <p className="text-base text-foreground leading-relaxed">
-                                  <span className="font-semibold">AI model flood extend vs FEMA map:</span> Here the
+                                  <span className="font-semibold">AI model flood extent vs FEMA map:</span> Here the
                                   100-year flood extends are shown for FEMA (green raster) and our AI coastal flood
-                                  model (red dots). We also shown sample flood levels (total water level (TWL) = surge +
+                                  model (red dots). We also show sample flood levels (total water level (TWL) = surge +
                                   tide + wave) to validate the 100-year water levels. Note: FEMA flood map includes both
                                   coastal and inland flood.
                                 </p>
@@ -570,8 +687,8 @@ const Index = () => {
                                   <span className="font-semibold">1 sec</span> per storm using 4 CPUs.
                                 </p>
                                 <p className="text-base text-foreground leading-relaxed">
-                                  Note that, compare to our AI model, numerical models require much larger RAMs to
-                                  upload simulation artifacts. Also, numerical computaional time increases significantly
+                                  Note that, compared to our AI model, numerical models require much larger RAMs to
+                                  upload simulation artifacts. Also, numerical computational time increases significantly
                                   under the following scenarios due to Courant number restriction: 1) strong hurricanes,
                                   2) refined mesh to resolve narrow channels or waterways. The AI model is independent
                                   of Courant number and, for both scenarios, the AI model computational time remains
@@ -585,130 +702,65 @@ const Index = () => {
                               </div>
                             </AccordionContent>
                           </AccordionItem>
-                          <AccordionItem value="demo" className="border rounded-lg px-6 mt-4">
-                            <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
-                              Demo
-                            </AccordionTrigger>
-                            <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
-                              <div className="space-y-6 pt-2">
-                                <p className="text-base text-foreground text-center font-medium flex items-center justify-center gap-2">
-                                  Demos for flood and wildfire calculation
-                                  <ChevronDown className="w-5 h-5" />
-                                </p>
-                                <div className="mt-8 w-4/5 mx-auto">
-                                  <h4 className="text-lg font-semibold text-foreground mb-3 text-center">
-                                    Coastal Flood AI Model
-                                  </h4>
-                                  <video
-                                    src={floodSingleEventDemo.url}
-                                    controls
-                                    className="w-full h-auto rounded-lg border border-border"
-                                  />
-                                </div>
-                                <div className="mt-8 w-4/5 mx-auto">
-                                  <h4 className="text-lg font-semibold text-foreground mb-3 text-center">
-                                    Flood Risk
-                                  </h4>
-                                  <video
-                                    src={floodStochasticDemo.url}
-                                    controls
-                                    className="w-full h-auto rounded-lg border border-border"
-                                  />
-                                </div>
-                                <div className="mt-8 w-4/5 mx-auto">
-                                  <h4 className="text-lg font-semibold text-foreground mb-3 text-center">
-                                    Palisades Wildfire Event Simulation
-                                  </h4>
-                                  <video
-                                    src={palisadesWildfireDemo.url}
-                                    controls
-                                    className="w-full h-auto rounded-lg border border-border"
-                                  />
-                                </div>
-                                <div className="mt-8 w-4/5 mx-auto">
-                                  <h4 className="text-lg font-semibold text-foreground mb-3 text-center">
-                                    Wildfire Risk
-                                  </h4>
-                                  <video
-                                    src={fireStochasticDemo.url}
-                                    controls
-                                    className="w-full h-auto rounded-lg border border-border"
-                                  />
-                                </div>
-                                <div className="mt-8 w-4/5 mx-auto">
-                                  <h4 className="text-lg font-semibold text-foreground mb-3 text-center">
-                                    Snyder Wildfire Event Simulation
-                                  </h4>
-                                  <video
-                                    src={snyderWildfireDemo.url}
-                                    controls
-                                    className="w-full h-auto rounded-lg border border-border"
-                                  />
-                                </div>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
                         </Accordion>
                       </section>
-
-                      {/* What next */}
-                      <section className="mb-16 max-w-5xl mx-auto">
-                        <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">What next</h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              Expand coastal flood coverage
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Extend the AI coastal flood model from Florida to the full U.S. East Coast and Gulf Coast,
-                              bringing event-based surge and inundation simulation to a broader set of coastal
-                              communities.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Inland flood workflow</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Develop an AI-powered inland flood pipeline that simulates and assesses rainfall-driven
-                              and riverine flooding, closing the gap between coastal and inland peril coverage.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire AI model</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Build a wildfire AI model beginning with California, then expand toward nationwide U.S.
-                              coverage to deliver high-resolution burn probability and fire behavior predictions.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              High-resolution loss modeling
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Integrate a sophisticated loss engine that supports complex insurance policy structures
-                              and estimates losses at a 10-meter grid resolution for granular, portfolio-grade risk
-                              quantification.
-                            </p>
-                          </Card>
-                        </div>
-                      </section>
-
-                      {/* Who can benefit from HazGrid ai */}
-                      <section className="max-w-3xl mx-auto text-center pb-8">
-                        <h2 className="text-2xl font-semibold text-foreground mb-4">Who can benefit from HazGrid ai</h2>
-                        <p className="text-muted-foreground leading-relaxed">
-                          HazGrid ai is designed for organizations that need interactive, faster but precise, more
-                          transparent, and location-specific insight into climate and natural hazard risk. Insurers,
-                          reinsurers, risk managers, lenders, real estate investors, infrastructure owners, utilities,
-                          emergency planners, and government agencies can use HazGrid ai to evaluate flood and wildfire
-                          exposure, estimate potential financial losses, compare risk across properties or portfolios,
-                          and support better decisions around underwriting, pricing, mitigation, investment, and
-                          resilience planning. By combining high-resolution geospatial data, AI-powered hazard
-                          simulation, and advanced loss modeling, HazGrid ai helps stakeholders move from static risk
-                          maps to actionable, property-level intelligence.
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent
+                  value="demos"
+                  className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden overflow-auto"
+                >
+                  <div className="flex-1 overflow-auto">
+                    <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
+                      <section className="text-center mb-12">
+                        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-4">
+                          Product Demos
+                        </h1>
+                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                          Short recordings of each HazGrid ai capability in action — event simulation,
+                          stochastic risk, and live scenario analysis.
                         </p>
+                      </section>
+                      <section className="grid md:grid-cols-2 gap-8 pb-8">
+                        {[
+                          {
+                            title: "Coastal Flood AI Model",
+                            caption:
+                              "Hurricane-driven surge and inundation for a single event, computed by the AI model in seconds.",
+                            src: floodSingleEventDemo.url,
+                          },
+                          {
+                            title: "Flood Risk",
+                            caption:
+                              "Stochastic coastal flood risk — thousands of synthetic events aggregated into probabilistic hazard.",
+                            src: floodStochasticDemo.url,
+                          },
+                          {
+                            title: "Palisades Wildfire Event Simulation",
+                            caption:
+                              "High-resolution replay of the 2025 Palisades fire: spread, timing, and structure impacts.",
+                            src: palisadesWildfireDemo.url,
+                          },
+                          {
+                            title: "Wildfire Risk",
+                            caption:
+                              "Stochastic wildfire modeling — burn probability surfaces from large ensembles of simulated fires.",
+                            src: fireStochasticDemo.url,
+                          },
+                          {
+                            title: "Snyder Wildfire Event Simulation",
+                            caption:
+                              "Event-based wildfire simulation of the Snyder fire with terrain- and wind-driven spread.",
+                            src: snyderWildfireDemo.url,
+                          },
+                        ].map((d) => (
+                          <div key={d.title} className="rounded-lg border border-border bg-card p-4">
+                            <h3 className="text-lg font-semibold text-foreground mb-1">{d.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-3">{d.caption}</p>
+                            <video src={d.src} controls preload="metadata" className="w-full h-auto rounded-md border border-border" />
+                          </div>
+                        ))}
                       </section>
                     </div>
                   </div>

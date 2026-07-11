@@ -129,7 +129,7 @@ const HurricaneChat = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!user) return;
+      if (!user) { setIsLoadingHistory(false); return; }
       try {
         const { data } = await supabase
           .from("conversations")
@@ -271,9 +271,14 @@ const HurricaneChat = () => {
       userContent: string,
       convIdIn: string | null
     ) => {
-      if (!session?.access_token) return;
+      // Local-dev bypass: set VITE_COASTAL_API_URL (e.g. http://localhost:8020) to call the
+      // CoastalFloodAIModel service directly (no Supabase function, no auth required).
+      const localApi = import.meta.env.VITE_COASTAL_API_URL as string | undefined;
+      if (!localApi && !session?.access_token) return;
       const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hurricane-predict`;
-      const authHeaders = { Authorization: `Bearer ${session.access_token}` };
+      const authHeaders: Record<string, string> = session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {};
 
       let convId = convIdIn;
       if (!convId) {
@@ -328,7 +333,11 @@ const HurricaneChat = () => {
         fd.append("num_workers", String(params.num_workers));
         fd.append("raster_res", String(params.raster_res));
 
-        const submitRes = await fetch(baseUrl, { method: "POST", headers: authHeaders, body: fd });
+        const submitRes = await fetch(localApi ? `${localApi}/predict` : baseUrl, {
+          method: "POST",
+          headers: authHeaders,
+          body: fd,
+        });
         const submitData = await submitRes.json().catch(() => ({}));
         if (!submitRes.ok) throw new Error(submitData?.error || `Submit failed (${submitRes.status})`);
         const jobId = submitData.job_id as string | undefined;
@@ -339,29 +348,46 @@ const HurricaneChat = () => {
         let status = "pending";
         while (status !== "complete" && status !== "completed" && status !== "done") {
           await new Promise((r) => setTimeout(r, 2000));
-          const sRes = await fetch(`${baseUrl}?action=status&job_id=${encodeURIComponent(jobId)}`, {
-            headers: authHeaders,
-          });
+          const sRes = await fetch(
+            localApi
+              ? `${localApi}/status/${encodeURIComponent(jobId)}`
+              : `${baseUrl}?action=status&job_id=${encodeURIComponent(jobId)}`,
+            { headers: authHeaders }
+          );
           const sData = await sRes.json().catch(() => ({}));
           if (!sRes.ok) throw new Error(sData?.error || `Status check failed (${sRes.status})`);
           status = String(sData.status || "").toLowerCase();
           if (status === "failed" || status === "error") {
             throw new Error(sData.error || sData.message || "Prediction job failed");
           }
-          const progress = sData.progress ? ` — ${sData.progress}` : "";
+          const progress = sData.progress ? ` — ${sData.progress}` : sData.message ? ` — ${sData.message}` : "";
           updateProgress(`Processing${progress}`);
         }
 
         updateProgress("Fetching results...");
-        const rRes = await fetch(`${baseUrl}?action=result`, {
-          method: "POST",
-          headers: { ...authHeaders, "Content-Type": "application/json" },
-          body: JSON.stringify({ job_id: jobId, conversation_id: convId }),
-        });
-        const data = await rRes.json().catch(() => ({}));
-        if (!rRes.ok) throw new Error(data?.error || `Result fetch failed (${rRes.status})`);
-
-        const files = (data.files as HurricaneFile[]) || [];
+        let files: HurricaneFile[] = [];
+        if (localApi) {
+          // local mode: the API returns a ZIP; unzip in the browser and expose blob URLs
+          const rRes = await fetch(`${localApi}/result/${encodeURIComponent(jobId)}`);
+          if (!rRes.ok) throw new Error(`Result fetch failed (${rRes.status})`);
+          const { unzipSync } = await import("fflate");
+          const raw = new Uint8Array(await rRes.arrayBuffer());
+          const entries = unzipSync(raw);
+          files = Object.entries(entries).map(([name, bytes]) => {
+            const type = /\.tiff?$/i.test(name) ? "image/tiff" : "text/csv";
+            const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type }));
+            return { name, path: name, signedUrl: url, size: bytes.length };
+          });
+        } else {
+          const rRes = await fetch(`${baseUrl}?action=result`, {
+            method: "POST",
+            headers: { ...authHeaders, "Content-Type": "application/json" },
+            body: JSON.stringify({ job_id: jobId, conversation_id: convId }),
+          });
+          const data = await rRes.json().catch(() => ({}));
+          if (!rRes.ok) throw new Error(data?.error || `Result fetch failed (${rRes.status})`);
+          files = (data.files as HurricaneFile[]) || [];
+        }
         const tifFile = files.find((f) => /\.tiff?$/i.test(f.name));
         const replyText =
           files.length > 0

@@ -23,7 +23,11 @@ type Message = {
 
 export type InsuranceSettings = { deductible: number; policyLimit: number };
 
-const CSV_API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/flood-risk-csv`;
+// Local-dev bypass: set VITE_FLOOD_API_URL (e.g. http://localhost:8030/raster/csv) to call
+// the floodrisk service directly instead of the Supabase edge function.
+const CSV_API_URL =
+  (import.meta.env.VITE_FLOOD_API_URL as string | undefined) ||
+  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/flood-risk-csv`;
 const CSV_API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
 
 const parseCsvToResult = (csvText: string, filename: string): FloodResult => {
@@ -107,7 +111,7 @@ const FloodChat = () => {
 
   useEffect(() => {
     const loadRecentConversation = async () => {
-      if (!user) return;
+      if (!user) { setIsLoadingHistory(false); return; }
       try {
         const { data: conversations, error: convError } = await supabase
           .from("conversations")
@@ -292,7 +296,106 @@ const FloodChat = () => {
     }
   };
 
+  // Local-dev: when VITE_FLOOD_API_URL is set and the message is plain "lon, lat"
+  // coordinates, query the local floodrisk service directly and render the same
+  // report the flood-chat edge function would produce (no LLM/auth needed).
+  const runLocalPointLookup = async (content: string): Promise<boolean> => {
+    const csvUrl = import.meta.env.VITE_FLOOD_API_URL as string | undefined;
+    if (!csvUrl) return false;
+    // exact "lon, lat" message — or, when there is no cloud session to fall back to,
+    // a coordinate pair embedded anywhere in the text ("flood risk at -80.13, 25.85")
+    // any message containing a coordinate pair is handled locally when the env is set
+    const m =
+      content.trim().match(/^(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)$/) ||
+      content.match(/(-?\d{1,3}\.\d+)[,\s]+(-?\d{1,3}\.\d+)/);
+    if (!m) return false;
+    const lon = parseFloat(m[1]);
+    const lat = parseFloat(m[2]);
+    if (Math.abs(lon) > 180 || Math.abs(lat) > 90) return false;
+    const base = csvUrl.replace(/\/raster\/csv\/?$/, "");
+
+    const userMessage: Message = { role: "user", content };
+    setMessages((prev) => [...prev, userMessage, { role: "assistant", content: "" }]);
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${base}/raster/value?lon=${lon}&lat=${lat}`);
+      if (!res.ok) throw new Error(`Flood service error (${res.status})`);
+      const d = await res.json();
+      const periods = ["2-year", "5-year", "10-year", "25-year", "50-year", "100-year", "200-year", "500-year"];
+      const deductible = 1000;
+      const policyLimit = 100000;
+      const valStruct: number | null = d.val_struct ?? null;
+      let rows = "";
+      for (let i = 0; i < periods.length; i++) {
+        const wl = d.water_level?.[i];
+        const dffe = d.depth_above_FFE?.[i];
+        const dr = d.damage_ratio?.[i];
+        const wlStr = wl != null ? `${wl.toFixed(2)} ft` : "N/A";
+        const dffeStr = dffe != null ? `${dffe.toFixed(2)} ft` : "N/A";
+        const drStr = dr != null ? `${dr.toFixed(1)}%` : "N/A";
+        let guStr = "N/A", grStr = "N/A";
+        if (dr != null && valStruct != null) {
+          const gu = (dr / 100) * valStruct;
+          const gr = Math.max(0, Math.min(gu - deductible, policyLimit));
+          guStr = "$" + gu.toLocaleString("en-US", { maximumFractionDigits: 0 });
+          grStr = "$" + gr.toLocaleString("en-US", { maximumFractionDigits: 0 });
+        }
+        rows += `| ${periods[i]} | ${wlStr} | ${dffeStr} | ${drStr} | ${guStr} | ${grStr} |\n`;
+      }
+      const reply = `📍 **Location**: ${lon}, ${lat}
+
+---
+
+# Property Profile
+
+| Attribute | Value |
+|-----------|-------|
+| **Building Type** | ${d.num_stories === "singlestory" ? "Single-Story" : d.num_stories === "multistory" ? "Multi-Story" : d.num_stories ?? "N/A"} |
+| **Ground Elevation** | ${d.ground_elv != null ? d.ground_elv.toFixed(2) + " ft (NAVD88)" : "N/A"} |
+| **Foundation Height** | ${d.found_ht ?? "N/A"} ft |
+| **First Floor Elevation** | ${d.ground_elv != null && d.found_ht != null ? (d.ground_elv + d.found_ht).toFixed(2) + " ft" : "N/A"} |
+| **Replacement Value** | ${valStruct != null ? "$" + valStruct.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "N/A"} |
+| **Deductible** | $${deductible.toLocaleString()} |
+| **Policy Limit** | $${policyLimit.toLocaleString()} |
+
+---
+
+# Flood Risk by Return Period
+
+| Return Period | Water Level | Depth Above FFE | Damage Ratio | Groundup Loss ($) | Gross Loss ($) |
+|---------------|-------------|-----------------|--------------|-------------------|----------------|
+${rows}
+*FFE = First Floor Elevation*`;
+      setMessages((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { role: "assistant", content: reply };
+        return next;
+      });
+      let convId = conversationId;
+      if (!convId) {
+        convId = await createConversation(content.slice(0, 50));
+        setConversationId(convId);
+      }
+      if (convId) {
+        await saveMessage(convId, "user", content);
+        await saveMessage(convId, "assistant", reply);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Flood lookup failed";
+      setMessages((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { role: "assistant", content: `Error: ${msg}` };
+        return next;
+      });
+    } finally {
+      setIsLoading(false);
+    }
+    return true;
+  };
+
   const sendMessage = async (content: string) => {
+    if (await runLocalPointLookup(content)) return;
+
     if (!session?.access_token) {
       toast({ title: "Authentication required", variant: "destructive" });
       navigate("/auth");

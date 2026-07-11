@@ -20,7 +20,11 @@ type Msg = {
   result?: { csvText: string; filename: string };
 };
 
-const RISK_API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wildfire-risk-csv`;
+// Local-dev bypass: set VITE_RISK_API_URL (e.g. http://localhost:8010/risk/csv) to call the
+// FireRisk service directly instead of the Supabase edge function.
+const RISK_API_URL =
+  (import.meta.env.VITE_RISK_API_URL as string | undefined) ||
+  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wildfire-risk-csv`;
 const RISK_API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
 
 const parseCsvToResult = (csvText: string, filename: string): WildfireResult => {
@@ -214,7 +218,7 @@ const WildfireChat = () => {
   // Load most recent wildfire conversation on mount
   useEffect(() => {
     const load = async () => {
-      if (!user) return;
+      if (!user) { setIsLoadingHistory(false); return; }
       try {
         const { data } = await supabase
           .from("conversations")

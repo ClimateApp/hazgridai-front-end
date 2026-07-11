@@ -255,6 +255,9 @@ const LiveWildfire = () => {
   const ignitionLayerRef = useRef<L.GeoJSON | null>(null);
   const footprintLayerRef = useRef<L.GeoJSON | null>(null);
   const scenarioLayersRef = useRef<Map<string, L.Layer>>(new Map());
+  const evacLayersRef = useRef<Map<string, { roads: L.Layer; areas: L.Layer }>>(new Map());   // evacuation layers by scenario
+  const [evacLegend, setEvacLegend] = useState<string[]>([]);      // scenario labels with evac layers (drives legend)
+  const [evacHidden, setEvacHidden] = useState<{ roads: boolean; areas: boolean }>({ roads: false, areas: false });
   const containmentLayerRef = useRef<L.GeoJSON | null>(null);
   const pollRef = useRef<number | null>(null);
   const agentPollRef = useRef<number | null>(null);
@@ -474,6 +477,16 @@ const LiveWildfire = () => {
     });
     if (allScenarios.length) restoreScenarioLayers(allScenarios);
 
+    // Restore evacuation layers from live session state (they aren't saved in messages)
+    if (sid) {
+      fetch(`${apiBaseUrl}/session/${sid}`, { headers: apiHeaders() })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((st) => {
+          if (st?.scenarios?.length) renderEvacuationLayers(sid, st.scenarios);
+        })
+        .catch(() => {});
+    }
+
     // Resume polling for any in-flight (pending) assistant message
     const pendingMsg = loaded.find((m) => m.role === "assistant" && m.pending && m.jobId && m.sessionId);
     if (pendingMsg?.jobId && pendingMsg.id && pendingMsg.sessionId) {
@@ -498,10 +511,124 @@ const LiveWildfire = () => {
     })();
   }, [user, loadConversation]);
 
+  const clearEvacLayers = () => {
+    if (!mapRef.current) return;
+    evacLayersRef.current.forEach(({ roads, areas }) => {
+      mapRef.current!.removeLayer(roads);
+      mapRef.current!.removeLayer(areas);
+    });
+    evacLayersRef.current = new Map();
+    setEvacLegend([]);
+    setEvacHidden({ roads: false, areas: false });
+  };
+
+  const toggleEvacKind = (kind: "roads" | "areas", show: boolean) => {
+    if (!mapRef.current) return;
+    evacLayersRef.current.forEach((entry) => {
+      const layer = entry[kind];
+      if (show) mapRef.current!.addLayer(layer);
+      else mapRef.current!.removeLayer(layer);
+    });
+    setEvacHidden((p) => ({ ...p, [kind]: !show }));
+  };
+
+  // Fetch + render evacuation layers (roads + risk areas) for every scenario that has an
+  // analysis. Used after a turn AND when restoring a conversation (tab return, reload) —
+  // without the restore call the layers vanish on any map rebuild.
+  const renderEvacuationLayers = async (sid: string, scenarios: any[], refresh = false) => {
+    if (!sid || !scenarios?.length) return;
+    const map = await waitForMap();
+    for (const s of scenarios) {
+      if (!s?.evacuation || !s?.label) continue;
+      const existing = evacLayersRef.current.get(s.label);
+      if (existing) {
+        if (!refresh) continue;
+        // re-analysis overwrote the GeoJSON — drop the stale layers and re-fetch
+        map.removeLayer(existing.roads);
+        map.removeLayer(existing.areas);
+        evacLayersRef.current.delete(s.label);
+      }
+      try {
+        const evRes = await fetch(
+          `${apiBaseUrl}/session/${sid}/evacuation?scenario=${encodeURIComponent(s.label)}`,
+          { headers: apiHeaders() }
+        );
+        if (!evRes.ok) continue;
+        const ev = await evRes.json();
+        // Evacuation roads: dashed red-and-yellow (solid yellow base + red dash overlay).
+        const roadsBase = L.geoJSON(ev, {
+          filter: (f: any) => f?.properties?.kind !== "risk_area",
+          style: () => ({ color: "#eab308", weight: 3, opacity: 0.95 }),
+        });
+        const roadsDash = L.geoJSON(ev, {
+          filter: (f: any) => f?.properties?.kind !== "risk_area",
+          style: () => ({ color: "#dc2626", weight: 3, opacity: 0.95, dashArray: "10 10" }),
+          onEachFeature: (f: any, l: any) => {
+            const p = f?.properties || {};
+            l.bindTooltip(`${p.name || "road"} — ${p.status}${p.cut_hour != null ? ` (hr ${p.cut_hour})` : ""}`);
+          },
+        });
+        const roadsLayer = L.layerGroup([roadsBase, roadsDash]);
+        // Permanent name label on each road's LONGEST segment (visible without hover).
+        const byName = new Map<string, { layer: any; len: number; p: any }>();
+        roadsDash.eachLayer((l: any) => {
+          const p = l.feature?.properties || {};
+          if (!p.name) return;
+          const cs: number[][] = l.feature?.geometry?.coordinates || [];
+          let len = 0;
+          for (let i = 1; i < cs.length; i++)
+            len += Math.hypot(cs[i][0] - cs[i - 1][0], cs[i][1] - cs[i - 1][1]);
+          const cur = byName.get(p.name);
+          if (!cur || len > cur.len) byName.set(p.name, { layer: l, len, p });
+        });
+        byName.forEach(({ layer, p }) => {
+          layer.unbindTooltip();
+          layer.bindTooltip(`${p.name}${p.cut_hour != null ? ` (hr ${p.cut_hour})` : ""}`,
+                            { permanent: true, direction: "center",
+                              className: p.status === "open" ? "evac-road-label-open"
+                                       : "evac-road-label" });
+        });
+        // Risk areas colored by TYPICAL FIRE ARRIVAL (median hour), fixed bands
+        // red -> yellow: <=5h, (5-10]h, (10-15]h, (15-20]h, >20h.
+        const arrivalColor = (a: number | null | undefined) =>
+          a == null ? "#6b7280"
+          : a <= 5 ? "#dc2626"
+          : a <= 10 ? "#ea580c"
+          : a <= 15 ? "#f97316"
+          : a <= 20 ? "#f59e0b"
+          : "#eab308";
+        const areasLayer = L.geoJSON(ev, {
+          filter: (f: any) => f?.properties?.kind === "risk_area",
+          style: (f: any) => {
+            const c = arrivalColor(f?.properties?.arrival_hour);
+            return { color: c, weight: 2, opacity: 0.9, fillColor: c, fillOpacity: 0.25 };
+          },
+          onEachFeature: (f: any, l: any) => {
+            const p = f?.properties || {};
+            const arr = p.arrival_hour != null ? ` (hr ${p.arrival_hour})` : "";
+            l.bindTooltip(`Area ${p.area_id}${arr}`,
+                          { permanent: true, direction: "center", className: "evac-area-label" });
+            l.bindPopup(`Area ${p.area_id} — ${p.structures?.toLocaleString?.() ?? p.structures} structures threatened` +
+                        (p.arrival_hour != null ? `<br/>Fire arrives ~hour ${p.arrival_hour} (typical)` : "") +
+                        (p.arrival_first != null ? `<br/>First impact ~hour ${p.arrival_first}` : ""));
+          },
+        });
+        roadsLayer.addTo(map);
+        areasLayer.addTo(map);
+        evacLayersRef.current.set(s.label, { roads: roadsLayer, areas: areasLayer });
+        setEvacLegend(Array.from(evacLayersRef.current.keys()));
+        setEvacHidden({ roads: false, areas: false });
+      } catch (e) {
+        console.warn("evacuation layer fetch failed", s.label, e);
+      }
+    }
+  };
+
   const clearScenarioLayersNoState = () => {
     if (!mapRef.current) return;
     scenarioLayersRef.current.forEach((l) => mapRef.current!.removeLayer(l));
     scenarioLayersRef.current = new Map();
+    clearEvacLayers();
     setScenarioLegend([]);
     setHiddenScenarios(new Set());
   };
@@ -574,6 +701,7 @@ const LiveWildfire = () => {
     // Clear any prior scenario layers
     scenarioLayersRef.current.forEach((l) => map.removeLayer(l));
     scenarioLayersRef.current = new Map();
+    clearEvacLayers();
 
     const legend: ScenarioLegendEntry[] = [];
     const cappedScenarios = capScenarioStack(scenarios);
@@ -952,6 +1080,10 @@ const LiveWildfire = () => {
         );
 
         appendScenarioLegendEntries(newLegendEntries);
+
+        // Render evacuation roads for any scenario that now has an analysis (color by status:
+        // red = cut by fire, orange = at risk, green = open egress).
+        await renderEvacuationLayers(sid, stateScenarios, true);
 
         await updateMessageRow(msgId, summary, {
           scenarios: scenariosWithGeo,
@@ -1354,6 +1486,31 @@ const LiveWildfire = () => {
                   </label>
                 );
               })}
+            </>
+          )}
+          {evacLegend.length > 0 && (
+            <>
+              <div className="border-t border-border pt-1 mt-1 font-medium text-foreground">Evacuation</div>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!evacHidden.areas}
+                  onChange={(e) => toggleEvacKind("areas", e.target.checked)}
+                  className="h-3 w-3 cursor-pointer"
+                  style={{ accentColor: "#dc2626" }}
+                />
+                <span className="text-foreground">Evacuation Area</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!evacHidden.roads}
+                  onChange={(e) => toggleEvacKind("roads", e.target.checked)}
+                  className="h-3 w-3 cursor-pointer"
+                  style={{ accentColor: "#dc2626" }}
+                />
+                <span className="text-foreground">Evacuation Road</span>
+              </label>
             </>
           )}
         </div>
