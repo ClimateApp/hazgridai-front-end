@@ -1,8 +1,11 @@
-import floodSingleEventDemo from "@/assets/flood_single_event_demo.mp4.asset.json";
-import floodStochasticDemo from "@/assets/flood_stochastic_demo.mp4.asset.json";
-import palisadesWildfireDemo from "@/assets/Palisades_Wilfire_Simulation.mp4.asset.json";
-import snyderWildfireDemo from "@/assets/Snyder_Wilfire_Simulation.mp4.asset.json";
-import fireStochasticDemo from "@/assets/fire_stochastic_demo.mp4.asset.json";
+// Demo videos are hosted on Cloudflare R2 (bucket: hazgridai-media), not in the repo —
+// they exceed git/Pages file-size limits. Filenames must match the bucket objects exactly.
+const MEDIA_BASE = "https://pub-abc686e5fe794fc09ebce8b4d13b4960.r2.dev";
+const floodSingleEventDemo = { url: `${MEDIA_BASE}/flood_single_event_demo.mp4` };
+const floodStochasticDemo = { url: `${MEDIA_BASE}/flood_stochastic_demo.mp4` };
+const palisadesWildfireDemo = { url: `${MEDIA_BASE}/Palisades_Wilfire_Simulation.mp4` };
+const snyderWildfireDemo = { url: `${MEDIA_BASE}/Snyder_Wilfire_Simulation.mp4` };
+const fireStochasticDemo = { url: `${MEDIA_BASE}/fire_stochastic_demo.mp4` };
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
