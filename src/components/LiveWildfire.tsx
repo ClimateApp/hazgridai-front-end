@@ -278,7 +278,7 @@ const LiveWildfire = () => {
   const [error, setError] = useState<string>("");
   const [showSettings, setShowSettings] = useState(false);
   const [apiBaseUrl, setApiBaseUrl] = useState<string>(
-    () => localStorage.getItem("wf_api_base") || "http://localhost:8000"
+    () => localStorage.getItem("wf_api_base") || "https://54.162.33.118.nip.io"
   );
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem("wf_api_key") || "");
 
