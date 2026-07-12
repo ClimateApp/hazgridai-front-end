@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
+import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -261,6 +261,8 @@ const LiveWildfire = () => {
   const containmentLayerRef = useRef<L.GeoJSON | null>(null);
   const pollRef = useRef<number | null>(null);
   const agentPollRef = useRef<number | null>(null);
+  const activeJobRef = useRef<string | null>(null);      // job of the in-flight turn (for Stop)
+  const activeMsgIdRef = useRef<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const sessionInputsRef = useRef<string | null>(null);
   const sessionFetchBuildingsRef = useRef<boolean>(false);
@@ -1118,6 +1120,8 @@ const LiveWildfire = () => {
   const pollJob = useCallback(
     (jobId: string, sid: string, msgId: string, convId: string | null) => {
       if (agentPollRef.current) window.clearInterval(agentPollRef.current);
+      activeJobRef.current = jobId;
+      activeMsgIdRef.current = msgId;
       let settled = false;
       let inFlight = false;
 
@@ -1137,6 +1141,13 @@ const LiveWildfire = () => {
             if (agentPollRef.current) window.clearInterval(agentPollRef.current);
             agentPollRef.current = null;
             await finishTurn(jobId, sid, msgId, convId);
+          } else if (data.status === "cancelled") {
+            settled = true;
+            if (agentPollRef.current) window.clearInterval(agentPollRef.current);
+            agentPollRef.current = null;
+            updateAssistantById(msgId, { pending: false, error: "⏹ Stopped by user", status: "" });
+            await updateMessageRow(msgId, "", { error: "Stopped by user", polygon, sessionId: sid });
+            setChatSending(false);
           } else if (data.status === "error") {
             settled = true;
             if (agentPollRef.current) window.clearInterval(agentPollRef.current);
@@ -1354,6 +1365,25 @@ const LiveWildfire = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [apiBaseUrl, apiKey, polygon, chatSending, conversationId, sessionId, createConversation, saveMessage, openSession, pollJob, updateAssistantById],
   );
+
+  const stopTurn = async () => {
+    const jid = activeJobRef.current;
+    const msgId = activeMsgIdRef.current;
+    if (agentPollRef.current) window.clearInterval(agentPollRef.current);
+    agentPollRef.current = null;
+    activeJobRef.current = null;
+    if (jid) {
+      try {
+        await fetch(`${apiBaseUrl}/cancel/${jid}`, { method: "POST", headers: apiHeaders() });
+      } catch {
+        // best-effort: the UI unblocks either way; the staleness guard cleans up the rest
+      }
+    }
+    if (msgId) {
+      updateAssistantById(msgId, { pending: false, error: "⏹ Stopped by user", status: "" });
+    }
+    setChatSending(false);
+  };
 
   const sendChatMessage = async () => {
     const text = chatInput.trim();
@@ -1937,14 +1967,26 @@ const LiveWildfire = () => {
                 rows={1}
                 className="min-h-[40px] max-h-24 resize-none text-sm"
               />
-              <Button
-                onClick={sendChatMessage}
-                disabled={chatSending || !chatInput.trim()}
-                size="icon"
-                className="h-10 w-10 shrink-0"
-              >
-                {chatSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </Button>
+              {chatSending ? (
+                <Button
+                  onClick={stopTurn}
+                  variant="destructive"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  title="Stop this run"
+                >
+                  <Square className="w-4 h-4 fill-current" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={sendChatMessage}
+                  disabled={!chatInput.trim()}
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
