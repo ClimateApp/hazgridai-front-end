@@ -54,9 +54,21 @@ type ChatMessage = {
 
 type ScenarioLegendEntry = { label: string; color: string; acres: number };
 
-const SCENARIO_COLORS = ["#10b981", "#84cc16", "#f59e0b", "#f97316", "#dc2626", "#7f1d1d", "#8b5cf6"];
-const MAX_SCENARIOS_ON_MAP = 6;
-const SCENARIO_DASHES = ["", "6 4", "2 4", "10 5", "1 5", "12 3 2 3"];
+// Footprint palette: high contrast against the OSM basemap (greens/beiges) and
+// distinct from the evacuation layers' warm red/orange/yellow family and the blue
+// ignition perimeter. Purple/magenta-led, no greens.
+const SCENARIO_COLORS = [
+  "#c026d3",   // magenta
+  "#7c3aed",   // deep purple
+  "#e11d48",   // rose
+  "#4f46e5",   // indigo
+  "#db2777",   // pink
+  "#ea580c",   // warm orange (late slots only; mild evac-palette overlap acceptable)
+  "#0f766e",   // dark teal
+  "#475569",   // slate
+];
+const MAX_SCENARIOS_ON_MAP = 8;
+const SCENARIO_DASHES = ["", "6 4", "2 4", "10 5", "1 5", "12 3 2 3", "8 3 2 3", "4 8"];
 
 // Pinned least-to-worst scenario ladder. ALWAYS sent in full to /agent.
 const SCENARIO_LADDER = [
