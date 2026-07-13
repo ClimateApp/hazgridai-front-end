@@ -1615,7 +1615,7 @@ const LiveWildfire = () => {
         style={{ width: panelWidth }}
         className="border-l border-border bg-background flex flex-col min-h-0 shrink-0"
       >
-        <div className="p-4 space-y-4 overflow-y-auto flex-1">
+        <div className={paramsCollapsed ? "p-4 space-y-4 overflow-y-auto shrink-0" : "p-4 space-y-4 overflow-y-auto flex-1"}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Flame className="w-5 h-5 text-accent" />
@@ -1872,7 +1872,8 @@ const LiveWildfire = () => {
         </div>
 
         {/* Chat panel — fixed at bottom */}
-        <div className="border-t border-border bg-card/30 flex flex-col" style={{ height: "45%", minHeight: 280 }}>
+        <div className="border-t border-border bg-card/30 flex flex-col min-h-0"
+             style={paramsCollapsed ? { flex: 1 } : { height: "45%", minHeight: 280 }}>
           <div className="flex items-center gap-2 px-4 py-2 border-b border-border">
             <MessageSquare className="w-4 h-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Agent Chat</h3>
