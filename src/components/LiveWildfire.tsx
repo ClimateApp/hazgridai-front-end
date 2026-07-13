@@ -38,6 +38,7 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   scenarios?: ScenarioInfo[];
+  evacLayers?: Record<string, any>;   // evacuation GeoJSON by scenario label (persisted like footprints)
   polygon?: any;
   status?: string;
   pending?: boolean;
@@ -423,11 +424,14 @@ const LiveWildfire = () => {
       const sessionFetchBuildings =
         typeof (meta as any).sessionFetchBuildings === "boolean" ? (meta as any).sessionFetchBuildings : undefined;
       const startedAt = typeof (meta as any).startedAt === "number" ? (meta as any).startedAt : undefined;
+      const evacLayers = (meta as any).evacLayers && typeof (meta as any).evacLayers === "object"
+        ? ((meta as any).evacLayers as Record<string, any>) : undefined;
       return {
         id: m.id as string,
         role: m.role as "user" | "assistant",
         content: m.content,
         scenarios,
+        evacLayers,
         polygon: poly,
         error: err,
         status,
@@ -479,12 +483,23 @@ const LiveWildfire = () => {
     });
     if (allScenarios.length) restoreScenarioLayers(allScenarios);
 
-    // Restore evacuation layers from live session state (they aren't saved in messages)
+    // Restore evacuation layers: prefer geojson persisted in messages (works even when
+    // the backend that ran them is unreachable), fall back to live session state.
+    const evacCache: Record<string, any> = {};
+    loaded.forEach((m) => {
+      if (m.evacLayers) Object.assign(evacCache, m.evacLayers);
+    });
+    const cachedLabels = Object.keys(evacCache);
+    if (cachedLabels.length) {
+      renderEvacuationLayers(sid || "", cachedLabels.map((label) => ({ label, evacuation: true })),
+                             false, evacCache);
+    }
     if (sid) {
       fetch(`${apiBaseUrl}/session/${sid}`, { headers: apiHeaders() })
         .then((r) => (r.ok ? r.json() : null))
         .then((st) => {
-          if (st?.scenarios?.length) renderEvacuationLayers(sid, st.scenarios);
+          const missing = (st?.scenarios || []).filter((sc: any) => !evacCache[sc?.label]);
+          if (missing.length) renderEvacuationLayers(sid, missing);
         })
         .catch(() => {});
     }
@@ -537,8 +552,12 @@ const LiveWildfire = () => {
   // Fetch + render evacuation layers (roads + risk areas) for every scenario that has an
   // analysis. Used after a turn AND when restoring a conversation (tab return, reload) —
   // without the restore call the layers vanish on any map rebuild.
-  const renderEvacuationLayers = async (sid: string, scenarios: any[], refresh = false) => {
-    if (!sid || !scenarios?.length) return;
+  const renderEvacuationLayers = async (
+    sid: string, scenarios: any[], refresh = false,
+    cache?: Record<string, any>,
+  ): Promise<Record<string, any>> => {
+    const drawn: Record<string, any> = {};
+    if (!scenarios?.length) return drawn;
     const map = await waitForMap();
     for (const s of scenarios) {
       if (!s?.evacuation || !s?.label) continue;
@@ -551,12 +570,16 @@ const LiveWildfire = () => {
         evacLayersRef.current.delete(s.label);
       }
       try {
-        const evRes = await fetch(
-          `${apiBaseUrl}/session/${sid}/evacuation?scenario=${encodeURIComponent(s.label)}`,
-          { headers: apiHeaders() }
-        );
-        if (!evRes.ok) continue;
-        const ev = await evRes.json();
+        let ev = cache?.[s.label];
+        if (!ev) {
+          if (!sid) continue;
+          const evRes = await fetch(
+            `${apiBaseUrl}/session/${sid}/evacuation?scenario=${encodeURIComponent(s.label)}`,
+            { headers: apiHeaders() }
+          );
+          if (!evRes.ok) continue;
+          ev = await evRes.json();
+        }
         // Evacuation roads: dashed red-and-yellow (solid yellow base + red dash overlay).
         const roadsBase = L.geoJSON(ev, {
           filter: (f: any) => f?.properties?.kind !== "risk_area",
@@ -618,12 +641,14 @@ const LiveWildfire = () => {
         roadsLayer.addTo(map);
         areasLayer.addTo(map);
         evacLayersRef.current.set(s.label, { roads: roadsLayer, areas: areasLayer });
+        drawn[s.label] = ev;
         setEvacLegend(Array.from(evacLayersRef.current.keys()));
         setEvacHidden({ roads: false, areas: false });
       } catch (e) {
         console.warn("evacuation layer fetch failed", s.label, e);
       }
     }
+    return drawn;
   };
 
   const clearScenarioLayersNoState = () => {
@@ -1085,10 +1110,14 @@ const LiveWildfire = () => {
 
         // Render evacuation roads for any scenario that now has an analysis (color by status:
         // red = cut by fire, orange = at risk, green = open egress).
-        await renderEvacuationLayers(sid, stateScenarios, true);
+        const evacDrawn = await renderEvacuationLayers(sid, stateScenarios, true);
 
+        // Persist evac geojson with the message (like footprints) unless it's huge —
+        // the DB row shouldn't balloon past a few MB; oversize falls back to live fetch.
+        const evacSmall = JSON.stringify(evacDrawn).length < 3_000_000 ? evacDrawn : undefined;
         await updateMessageRow(msgId, summary, {
           scenarios: scenariosWithGeo,
+          ...(evacSmall && Object.keys(evacSmall).length ? { evacLayers: evacSmall } : {}),
           polygon,
           sessionId: sid,
           sessionFetchBuildings: sessionFetchBuildingsRef.current,
