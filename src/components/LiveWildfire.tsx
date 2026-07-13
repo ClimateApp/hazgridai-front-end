@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
+import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, CheckCircle2, Circle, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -39,6 +39,8 @@ type ChatMessage = {
   content: string;
   scenarios?: ScenarioInfo[];
   evacLayers?: Record<string, any>;   // evacuation GeoJSON by scenario label (persisted like footprints)
+  planSteps?: string[];               // agent-announced checklist for the in-flight turn
+  planDone?: number[];                // indices of completed steps
   polygon?: any;
   status?: string;
   pending?: boolean;
@@ -1163,7 +1165,20 @@ const LiveWildfire = () => {
           const data = await res.json();
           const progress: Progress[] = data.progress || [];
           if (progress.length) {
-            updateAssistantById(msgId, { status: progress[progress.length - 1].msg });
+            let planSteps: string[] | undefined;
+            const planDone: number[] = [];
+            let status = "";
+            for (const pr of progress) {
+              if (pr.msg.startsWith("PLAN::")) {
+                try { planSteps = JSON.parse(pr.msg.slice(6)); } catch { /* malformed plan */ }
+              } else if (pr.msg.startsWith("STEP_DONE::")) {
+                const i = parseInt(pr.msg.slice(11), 10);
+                if (!Number.isNaN(i)) planDone.push(i);
+              } else {
+                status = pr.msg;
+              }
+            }
+            updateAssistantById(msgId, { status, planSteps, planDone });
           }
           if (data.status === "done") {
             settled = true;
@@ -1909,9 +1924,27 @@ const LiveWildfire = () => {
                 ) : (
                   <div className="text-sm text-foreground space-y-2 max-w-full">
                     {m.pending ? (
-                      <div className="flex items-start gap-2 text-muted-foreground">
-                        <StageIcon status={m.status || ""} />
-                        <StageStatus status={m.status || ""} startedAt={m.startedAt} />
+                      <div className="space-y-1.5">
+                        {m.planSteps && m.planSteps.length > 0 && (
+                          <div className="rounded-md border border-border bg-muted/40 px-2.5 py-2 space-y-1">
+                            {m.planSteps.map((step, si) => {
+                              const isDone = m.planDone?.includes(si);
+                              const isCurrent = !isDone && (m.planDone?.length ?? 0) === si;
+                              return (
+                                <div key={si} className={`flex items-center gap-2 text-xs ${isDone ? "text-muted-foreground line-through" : isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
+                                  {isDone ? <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                                    : isCurrent ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                                    : <Circle className="w-3.5 h-3.5 shrink-0 opacity-40" />}
+                                  <span>{step}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <StageIcon status={m.status || ""} />
+                          <StageStatus status={m.status || ""} startedAt={m.startedAt} />
+                        </div>
                       </div>
                     ) : m.error ? (
                       <div className="text-xs text-destructive break-words">{m.error}</div>
