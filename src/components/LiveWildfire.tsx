@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, CheckCircle2, Circle, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
+import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, CheckCircle2, Circle, ChevronDown, ChevronRight, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -291,6 +291,7 @@ const LiveWildfire = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatSending, setChatSending] = useState(false);
+  const [paramsCollapsed, setParamsCollapsed] = useState(false);
   const [scenarioLegend, setScenarioLegend] = useState<ScenarioLegendEntry[]>([]);
   const [hiddenScenarios, setHiddenScenarios] = useState<Set<string>>(new Set());
   const [baselineHidden, setBaselineHidden] = useState(false);
@@ -1429,6 +1430,13 @@ const LiveWildfire = () => {
     setChatSending(false);
   };
 
+  // Once a session is live the fire inputs are frozen — collapse the panel so the
+  // chat gets the vertical space. Re-expandable; a fresh conversation reopens it.
+  useEffect(() => {
+    if (sessionId) setParamsCollapsed(true);
+    else setParamsCollapsed(false);
+  }, [sessionId]);
+
   const sendChatMessage = async () => {
     const text = chatInput.trim();
     if (!text) return;
@@ -1650,7 +1658,20 @@ const LiveWildfire = () => {
           )}
 
           <Card className="p-3 space-y-3">
-            <Label className="text-sm font-medium">Fire parameters</Label>
+            <button
+              type="button"
+              onClick={() => setParamsCollapsed((c) => !c)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <Label className="text-sm font-medium cursor-pointer">
+                Fire parameters
+                {paramsCollapsed && polygon && (
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">✓ perimeter set</span>
+                )}
+              </Label>
+              {paramsCollapsed ? <ChevronRight className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+            </button>
+            {!paramsCollapsed && (<div className="space-y-3">
             <div className="flex flex-col gap-2">
               <div className="flex gap-2 items-center">
                 <Button onClick={startDrawing} variant="outline" disabled={running} className="flex-1">
@@ -1774,6 +1795,7 @@ const LiveWildfire = () => {
                 </div>
               )}
             </div>
+            </div>)}
           </Card>
 
 
