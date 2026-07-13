@@ -2001,7 +2001,7 @@ const LiveWildfire = () => {
                       <>
                         <div className="text-sm text-foreground space-y-2 max-w-full">
                           <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
+                            remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
                             components={{
                               h1: ({ children }) => <SectionHeading level={1}>{children}</SectionHeading>,
                               h2: ({ children }) => <SectionHeading level={2}>{children}</SectionHeading>,

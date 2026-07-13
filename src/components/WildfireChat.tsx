@@ -584,7 +584,7 @@ const WildfireChat = () => {
                   }`}
                 >
                   <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-table:my-2 prose-table:border-collapse prose-th:border prose-th:border-border prose-th:bg-muted prose-th:px-2 prose-th:py-1 prose-th:text-left prose-td:border prose-td:border-border prose-td:px-2 prose-td:py-1 overflow-x-auto">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content || "…"}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{m.content || "…"}</ReactMarkdown>
                   </div>
                 </div>
               </div>
