@@ -1931,20 +1931,34 @@ const LiveWildfire = () => {
                               const isDone = m.planDone?.includes(si);
                               const isCurrent = !isDone && (m.planDone?.length ?? 0) === si;
                               return (
-                                <div key={si} className={`flex items-center gap-2 text-xs ${isDone ? "text-muted-foreground line-through" : isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
-                                  {isDone ? <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
-                                    : isCurrent ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
-                                    : <Circle className="w-3.5 h-3.5 shrink-0 opacity-40" />}
-                                  <span>{step}</span>
+                                <div key={si}>
+                                  <div className={`flex items-center gap-2 text-xs ${isDone ? "text-muted-foreground line-through" : isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
+                                    {isDone ? <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                                      : isCurrent ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                                      : <Circle className="w-3.5 h-3.5 shrink-0 opacity-40" />}
+                                    <span>{step}</span>
+                                  </div>
+                                  {isCurrent && m.status && (
+                                    <div key={m.status} className="ml-[22px] mt-0.5 text-[11px] italic text-muted-foreground truncate animate-in fade-in slide-in-from-bottom-1 duration-300">
+                                      {m.status}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
                           </div>
                         )}
-                        <div className="flex items-start gap-2 text-muted-foreground">
-                          <StageIcon status={m.status || ""} />
-                          <StageStatus status={m.status || ""} startedAt={m.startedAt} />
-                        </div>
+                        {(!m.planSteps || m.planSteps.length === 0) && (
+                          <div className="flex items-start gap-2 text-muted-foreground">
+                            <StageIcon status={m.status || ""} />
+                            <StageStatus status={m.status || ""} startedAt={m.startedAt} />
+                          </div>
+                        )}
+                        {m.planSteps && m.planSteps.length > 0 && m.startedAt && (
+                          <div className="text-[11px] text-muted-foreground pl-1">
+                            <StageStatus status="" startedAt={m.startedAt} />
+                          </div>
+                        )}
                       </div>
                     ) : m.error ? (
                       <div className="text-xs text-destructive break-words">{m.error}</div>
