@@ -25,7 +25,9 @@ export type InsuranceSettings = { deductible: number; policyLimit: number };
 
 // Local-dev bypass: set VITE_FLOOD_API_URL (e.g. http://localhost:8030/raster/csv) to call
 // the floodrisk service directly instead of the Supabase edge function.
+// Per-browser override first: localStorage.setItem("flood_api_url", "http://localhost:8030/raster/csv")
 const CSV_API_URL =
+  (typeof localStorage !== "undefined" ? localStorage.getItem("flood_api_url") : null) ||
   (import.meta.env.VITE_FLOOD_API_URL as string | undefined) ||
   `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/flood-risk-csv`;
 const CSV_API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
@@ -300,7 +302,9 @@ const FloodChat = () => {
   // coordinates, query the local floodrisk service directly and render the same
   // report the flood-chat edge function would produce (no LLM/auth needed).
   const runLocalPointLookup = async (content: string): Promise<boolean> => {
-    const csvUrl = import.meta.env.VITE_FLOOD_API_URL as string | undefined;
+    const csvUrl =
+      (typeof localStorage !== "undefined" ? localStorage.getItem("flood_api_url") : null) ||
+      (import.meta.env.VITE_FLOOD_API_URL as string | undefined);
     if (!csvUrl) return false;
     // exact "lon, lat" message — or, when there is no cloud session to fall back to,
     // a coordinate pair embedded anywhere in the text ("flood risk at -80.13, 25.85")
