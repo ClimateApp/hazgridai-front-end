@@ -117,7 +117,7 @@ const Index = () => {
                           </TabsTrigger>
                         <TabsTrigger value="hurricane" className="gap-1.5">
                           <Wind className="w-4 h-4" />
-                          Coastal Flood AI Model
+                          Coastal Flood Live
                         </TabsTrigger>
                         <TabsTrigger value="flood" className="gap-1.5">
                           <Waves className="w-4 h-4" />
@@ -728,7 +728,7 @@ const Index = () => {
                       <section className="grid md:grid-cols-2 gap-8 pb-8">
                         {[
                           {
-                            title: "Coastal Flood AI Model",
+                            title: "Coastal Flood Live",
                             caption:
                               "Hurricane-driven surge and inundation for a single event, computed by the AI model in seconds.",
                             src: floodSingleEventDemo.url,
