@@ -65,6 +65,8 @@ export default function CoastalLive() {
   const [chatSending, setChatSending] = useState(false);
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
   const [opening, setOpening] = useState(false);
+  const [modelParams, setModelParams] = useState({ n_stations: 73, station_stride: 1,
+                                                   num_workers: 8, raster_res: 0.003 });
   const [fatal, setFatal] = useState<string | null>(null);
   const [, setClockTick] = useState(0);
   useEffect(() => {
@@ -199,6 +201,10 @@ export default function CoastalLive() {
   }, [user]);
 
   const openSession = async (form: FormData, name: string) => {
+    form.append("n_stations", String(modelParams.n_stations));
+    form.append("station_stride", String(modelParams.station_stride));
+    form.append("num_workers", String(modelParams.num_workers));
+    form.append("raster_res", String(modelParams.raster_res));
     setOpening(true);
     try {
       const r = await fetch(`${apiBase()}/session`, { method: "POST", body: form });
@@ -491,6 +497,32 @@ export default function CoastalLive() {
                       {opening ? <Loader2 className="w-3 h-3 animate-spin" /> : n}
                     </Button>
                   ))}
+                </div>
+
+                <div className="border-t border-border pt-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">AI model settings</p>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                    {([
+                      ["Stations", "n_stations", 1, 73, 1, "How many coastal stations to predict (73 = full coverage)"],
+                      ["Station stride", "station_stride", 1, 10, 1, "Run every Nth station (2 = ~2x faster, coarser)"],
+                      ["CPU workers", "num_workers", 1, 16, 1, "Parallel inference workers"],
+                      ["Raster res (°)", "raster_res", 0.001, 0.05, 0.001, "Output grid size (0.003 ≈ 300 m)"],
+                    ] as const).map(([label, key, min, max, step, tip]) => (
+                      <div key={key} title={tip}>
+                        <Label className="text-[11px] text-muted-foreground">{label}</Label>
+                        <input
+                          type="number" min={min} max={max} step={step}
+                          value={modelParams[key as keyof typeof modelParams]}
+                          onChange={(e) => setModelParams((prev) => ({ ...prev, [key]: Number(e.target.value) }))}
+                          className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Applied to every run in this session; the agent can override per run
+                    (e.g. "quick run with stride 3").
+                  </p>
                 </div>
               </div>
             )}
