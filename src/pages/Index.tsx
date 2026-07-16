@@ -23,7 +23,7 @@ import station2MaxWaterLevelScatter from "@/assets/station2-max-waterlevel-scatt
 import station2WaterLevelTimeseries from "@/assets/station2-waterlevel-timeseries.png";
 import FloodChat from "@/components/FloodChat";
 
-import HurricaneChat from "@/components/HurricaneChat";
+import CoastalLive from "@/components/CoastalLive";
 import LiveWildfire from "@/components/LiveWildfire";
 import WildfireChat from "@/components/WildfireChat";
 import StationMap from "@/components/StationMap";
@@ -772,7 +772,7 @@ const Index = () => {
                    value="hurricane"
                    className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden"
                  >
-                   <HurricaneChat />
+                   <CoastalLive />
                  </TabsContent>
                  <TabsContent value="flood" className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden">
                    <FloodChat />
