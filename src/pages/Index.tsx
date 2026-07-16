@@ -109,7 +109,7 @@ const Index = () => {
                        </TabsTrigger>
                          <TabsTrigger value="live-wildfire" className="gap-1.5">
                            <Flame className="w-4 h-4" />
-                           Wildfire Event, Losses &amp; Evacuation Planning
+                           Wildfire Live
                          </TabsTrigger>
                           <TabsTrigger value="wildfire" className="gap-1.5">
                             <Flame className="w-4 h-4" />
@@ -327,7 +327,7 @@ const Index = () => {
                               </Button>
                             ) : (
                               <Button size="lg" variant="outline" onClick={() => setActiveTab("live-wildfire")}>
-                                Open Wildfire Event, Losses &amp; Evacuation Planning
+                                Open Wildfire Live
                               </Button>
                             )}
                           </div>
