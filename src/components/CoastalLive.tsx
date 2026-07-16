@@ -16,9 +16,10 @@ import { Textarea } from "@/components/ui/textarea";
 // lives on the CoastalFloodAI service itself (e.g. http://localhost:8020); there is no
 // edge-function fallback for it.
 const apiBase = () =>
-  (typeof localStorage !== "undefined" ? localStorage.getItem("coastal_api_url") : null) ||
-  (import.meta.env.VITE_COASTAL_API_URL as string | undefined) ||
-  "";
+  ((typeof localStorage !== "undefined" ? localStorage.getItem("coastal_api_url") : null) ||
+    (import.meta.env.VITE_COASTAL_API_URL as string | undefined) ||
+    ""
+  ).trim().replace(/\/+$/, "");   // tolerate trailing slashes in saved URLs
 
 type Msg = {
   role: "user" | "assistant";
