@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, CheckCircle2, Circle, ChevronDown, ChevronRight, MessageSquare, Lightbulb, AlertTriangle, Layers, GitCompare, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
+import { Flame, Loader2, Settings as SettingsIcon, Upload, Pencil, Send, Square, CheckCircle2, Circle, ChevronDown, ChevronRight, MessageSquare, Lightbulb, AlertTriangle, DollarSign, Download, Building2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -70,52 +70,6 @@ const SCENARIO_COLORS = [
 const MAX_SCENARIOS_ON_MAP = 8;
 const SCENARIO_DASHES = ["", "6 4", "2 4", "10 5", "1 5", "12 3 2 3", "8 3 2 3", "4 8"];
 
-// Pinned least-to-worst scenario ladder. ALWAYS sent in full to /agent.
-const SCENARIO_LADDER = [
-  {
-    label: "real_day",
-    coeffs: "global",
-    m1_offset: 0, m10_offset: 0, m100_offset: 0,
-    suppression: { enabled: false },
-    buildings: { enabled: false },
-  },
-  {
-    label: "elevated_wind",
-    coeffs: "global", wind_speed_mult: 1.1,
-    m1_offset: 0, m10_offset: 0, m100_offset: 0,
-    suppression: { enabled: false },
-    buildings: { enabled: false },
-  },
-  {
-    label: "critical_fire_weather",
-    coeffs: "global", wind_speed_mult: 1.4,
-    m1_offset: -1.5, m10_offset: -1.5, m100_offset: -2.0,
-    suppression: { enabled: false },
-    buildings: { enabled: false },
-  },
-  {
-    label: "extreme_wind_event",
-    coeffs: "global", wind_speed_mult: 1.6,
-    m1_offset: -2.5, m10_offset: -2.5, m100_offset: -3.5,
-    suppression: { enabled: false },
-    buildings: { enabled: false },
-  },
-  {
-    label: "urban_spread_contained",
-    coeffs: "global", wind_speed_mult: 1.6,
-    m1_offset: -2.5, m10_offset: -2.5, m100_offset: -3.5,
-    suppression: { enabled: true, max_contain: 60 },
-    buildings: { enabled: true, sep: 15, nonburn: 0.80 },
-  },
-  {
-    label: "urban_firestorm",
-    coeffs: "global", wind_speed_mult: 1.6,
-    m1_offset: -2.5, m10_offset: -2.5, m100_offset: -3.5,
-    suppression: { enabled: false },
-    buildings: { enabled: true, sep: 15, nonburn: 0.80 },
-  },
-] as const;
-
 const SCENARIO_DISPLAY_NAMES: Record<string, string> = {
   real_day: "Real Day",
   elevated_wind: "Elevated Wind",
@@ -128,17 +82,13 @@ const SCENARIO_DISPLAY_NAMES: Record<string, string> = {
 const displayNameForScenario = (label?: string) =>
   SCENARIO_DISPLAY_NAMES[label ?? ""] ?? label;
 
-const SCENARIO_LABEL_ORDER = SCENARIO_LADDER.map((s) => s.label as string);
+// Historical ladder order — kept only so legends from old conversations sort stably.
+const SCENARIO_LABEL_ORDER = ["real_day", "elevated_wind", "critical_fire_weather",
+                              "extreme_wind_event", "urban_spread_contained", "urban_firestorm"];
 const scenarioOrderIndex = (label: string) => {
   const idx = SCENARIO_LABEL_ORDER.indexOf(label);
   return idx === -1 ? SCENARIO_LABEL_ORDER.length : idx;
 };
-
-const LADDER_FOOTNOTE =
-  "Winds are hourly sustained 10-m winds; gusts run ~1.5× higher. Elevated Wind, Critical Fire Weather, and Extreme Wind Event scale the real-day wind by +10%, +40%, and +60% respectively. Urban Spread — with Suppression and Urban Firestorm use the same +60% wind as Extreme Wind Event, differing only by suppression and building-to-building spread.";
-
-const LADDER_INSTRUCTION =
-  "Run the pinned least-to-worst scenario ladder. Report acres, growth_by_day, footprint, structures burned, and intensity per member. Use these display names in the report: Real Day, Elevated Wind, Critical Fire Weather, Extreme Wind Event, Urban Spread — with Suppression, Urban Firestorm."; 
 
 const applyScenarioDisplayNames = (text: string) =>
   Object.entries(SCENARIO_DISPLAY_NAMES).reduce(
@@ -1069,11 +1019,7 @@ const LiveWildfire = () => {
           if (s?.label) acresByLabel[s.label] = Number(s.final_acres ?? 0);
         });
 
-        const isLadderResult = labels.some((l) => SCENARIO_DISPLAY_NAMES[l]);
-        let summary = reply;
-        if (isLadderResult && !summary.includes(LADDER_FOOTNOTE.slice(0, 50))) {
-          summary += `\n\n*${LADDER_FOOTNOTE}*`;
-        }
+        const summary = reply;
 
         // Skip scenarios already rendered (backend returns full session list on every turn)
         const existingLabels = new Set(scenarioLayersRef.current.keys());
@@ -1454,34 +1400,6 @@ const LiveWildfire = () => {
     if (!text) return;
     setChatInput("");
     await sendTurn(text);
-  };
-
-  const runScenarioLadder = async () => {
-    // Reuse the existing session — the ladder is just another message.
-    // The prepared bundle + building footprints from the first turn are reused.
-    await sendTurn(LADDER_INSTRUCTION);
-  };
-
-  const runRealDay = async () => {
-    await sendTurn(
-      containmentLine
-        ? `Run a real-day baseline simulation. Apply the drawn confinement line at ${holdPct}% holding.`
-        : "Run a real-day baseline simulation.",
-      { fetchBuildings: false },
-    );
-  };
-
-  const runExtremeWindEvent = async () => {
-    await sendTurn(
-      containmentLine
-        ? `Run the Extreme Wind Event scenario. Apply the drawn confinement line at ${holdPct}% holding.`
-        : "Run the Extreme Wind Event scenario.",
-      { fetchBuildings: false },
-    );
-  };
-
-  const estimateLosses = async () => {
-    await sendTurn("Estimate losses for the current scenarios.", { fetchBuildings: true });
   };
 
 
@@ -1903,51 +1821,6 @@ const LiveWildfire = () => {
                   {" → "}
                   <strong className="text-foreground">Analyze evacuation access</strong>.
                 </p>
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] font-medium text-muted-foreground">Suggested</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={runScenarioLadder}
-                        disabled={running || chatSending}
-                        className="rounded-full border-border hover:bg-accent hover:text-accent-foreground w-full"
-                      >
-                        <Layers className="w-4 h-4 mr-2" />
-                        Run the ladder
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={runRealDay}
-                        disabled={running || chatSending}
-                        className="rounded-full border-border hover:bg-accent hover:text-accent-foreground w-full"
-                      >
-                        <Flame className="w-4 h-4 mr-2" />
-                        Run real day
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={runExtremeWindEvent}
-                        disabled={running || chatSending}
-                        className="rounded-full border-border hover:bg-accent hover:text-accent-foreground w-full"
-                      >
-                        <GitCompare className="w-4 h-4 mr-2" />
-                        Run Extreme Wind Event
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={estimateLosses}
-                        disabled={running || chatSending}
-                        className="rounded-full border-border hover:bg-accent hover:text-accent-foreground w-full"
-                      >
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        Estimate losses
-                      </Button>
-                    </div>
-                  </div>
               </div>
             )}
             {messages.map((m, i) => (
