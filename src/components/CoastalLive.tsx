@@ -8,6 +8,9 @@ import {
   Upload, MessageSquare, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +49,10 @@ export default function CoastalLive() {
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const { user } = useAuth();
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
+  const initDoneRef = useRef(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [stormName, setStormName] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -103,8 +110,28 @@ export default function CoastalLive() {
     });
   };
 
+  // --------------------------- conversation persistence ----------------------
+  const createConversation = useCallback(async (title: string) => {
+    if (!user) return null;
+    const { data, error } = await supabase.from("conversations")
+      .insert({ user_id: user.id, title: title.slice(0, 80), conversation_type: "coastal-live" })
+      .select("id").single();
+    setSidebarRefreshTrigger((p) => p + 1);
+    return error ? null : (data?.id as string);
+  }, [user]);
+
+  const saveMessage = useCallback(async (convId: string | null, role: "user" | "assistant",
+                                         content: string) => {
+    if (!user || !convId || !content) return;
+    await supabase.from("messages").insert({
+      conversation_id: convId, user_id: user.id, role, content, chart_data: null,
+    });
+    await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+    setSidebarRefreshTrigger((p) => p + 1);
+  }, [user]);
+
   // --------------------------- session lifecycle -----------------------------
-  const restoreSession = useCallback(async (sid: string) => {
+  const restoreSession = useCallback(async (sid: string, useBackendMessages = true) => {
     try {
       const r = await fetch(`${apiBase()}/session/${sid}`);
       if (!r.ok) throw new Error(`session gone (${r.status})`);
@@ -112,7 +139,9 @@ export default function CoastalLive() {
       setSessionId(sid);
       setStormName(d.storm);
       setParamsCollapsed(true);
-      setMessages((d.messages || []).map((m: any) => ({ role: m.role, content: m.content })));
+      if (useBackendMessages) {
+        setMessages((d.messages || []).map((m: any) => ({ role: m.role, content: m.content })));
+      }
       drawTrack(d.track);
       for (const run of d.runs || []) await addRunOverlay(sid, run.label);
     } catch {
@@ -120,12 +149,45 @@ export default function CoastalLive() {
     }
   }, [drawTrack, addRunOverlay]);
 
-  useEffect(() => {
-    if (!apiBase()) { setFatal("No backend configured — set the coastal API URL (settings/localStorage) first."); return; }
-    const sid = localStorage.getItem(SESSION_KEY);
-    if (sid) restoreSession(sid);
+  const handleSelectConversation = useCallback(async (id: string) => {
+    setConversationId(id);
+    setFatal(null);
+    const { data: msgs } = await supabase.from("messages")
+      .select("role, content").eq("conversation_id", id).order("created_at", { ascending: true });
+    setMessages((msgs || []).map((m: any) => ({ role: m.role, content: m.content })));
+    // map/runs live on the backend session tied to this conversation
+    overlaysRef.current.forEach((ov) => mapRef.current?.removeLayer(ov));
+    overlaysRef.current = new Map();
+    setLegend([]); setHiddenRuns(new Set());
+    const sid = localStorage.getItem(`coastal_session_${id}`);
+    if (sid) await restoreSession(sid, false);
+    else { setSessionId(null); setStormName(null); setParamsCollapsed(false); }
+  }, [restoreSession]);
+
+  const handleNewConversation = useCallback(() => {
+    setConversationId(null);
+    newStorm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (initDoneRef.current) return;
+    if (!apiBase()) { setFatal("No backend configured — set the coastal API URL (settings/localStorage) first."); return; }
+    if (user) {
+      initDoneRef.current = true;
+      (async () => {
+        const { data } = await supabase.from("conversations").select("id")
+          .eq("user_id", user.id).eq("conversation_type", "coastal-live")
+          .order("updated_at", { ascending: false }).limit(1);
+        if (data && data.length) handleSelectConversation(data[0].id);
+        else { const sid = localStorage.getItem(SESSION_KEY); if (sid) restoreSession(sid); }
+      })();
+    } else {
+      const sid = localStorage.getItem(SESSION_KEY);
+      if (sid) { initDoneRef.current = true; restoreSession(sid); }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const openSession = async (form: FormData, name: string) => {
     setOpening(true);
@@ -141,6 +203,11 @@ export default function CoastalLive() {
       localStorage.setItem(SESSION_KEY, d.session_id);
       drawTrack(d.track);
       setParamsCollapsed(true);
+      const convId = await createConversation(`Storm: ${d.storm || name}`);
+      if (convId) {
+        setConversationId(convId);
+        localStorage.setItem(`coastal_session_${convId}`, d.session_id);
+      }
     } catch (e: any) {
       setFatal(`Could not open session: ${e.message}`);
     } finally {
@@ -173,6 +240,7 @@ export default function CoastalLive() {
 
   const finishTurn = async (sid: string, result: any) => {
     updateLast({ pending: false, content: result?.reply || "(no reply)", status: "" });
+    saveMessage(conversationId, "assistant", result?.reply || "");
     for (const label of result?.runs || []) await addRunOverlay(sid, label);
   };
 
@@ -193,6 +261,7 @@ export default function CoastalLive() {
     setChatSending(true);
     setMessages((prev) => [...prev, { role: "user", content: text },
       { role: "assistant", content: "", pending: true, status: "starting…", startedAt: Date.now() }]);
+    saveMessage(conversationId, "user", text);
     try {
       const r = await fetch(`${apiBase()}/session/${sessionId}/message`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -259,6 +328,17 @@ export default function CoastalLive() {
 
   // ------------------------------- render ------------------------------------
   return (
+    <>
+      {user && (
+        <ConversationSidebar
+          currentConversationId={conversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
+          refreshTrigger={sidebarRefreshTrigger}
+          conversationType="coastal-live"
+          limit={20}
+        />
+      )}
     <div className="flex flex-1 h-full min-h-0">
       <div className="flex-1 relative">
         <div ref={mapContainerRef} className="absolute inset-0" />
@@ -442,5 +522,6 @@ export default function CoastalLive() {
         </div>
       </div>
     </div>
+    </>
   );
 }
