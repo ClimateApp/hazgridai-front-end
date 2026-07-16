@@ -1897,11 +1897,11 @@ const LiveWildfire = () => {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   You can run:
                   <br />
-                  1. <strong className="text-foreground">The ladder</strong> — 6 fire scenarios from Real Day → Elevated Wind → Critical Fire Weather → Extreme Wind Event → Urban Spread — Contained → Urban Firestorm.
-                  <br />
-                  2. <strong className="text-foreground">Selected scenarios</strong> — e.g. Real Day and Urban Firestorm.
-                  <br />
-                  3. <strong className="text-foreground">Estimate losses</strong> for any run scenarios.
+                  <strong className="text-foreground">Fire scenario</strong> (e.g. run real day scenario, run real day with building spread enabled, boost wind speed by 50% and rerun, …)
+                  {" → "}
+                  <strong className="text-foreground">Calculate the losses</strong>
+                  {" → "}
+                  <strong className="text-foreground">Analyze evacuation access</strong>.
                 </p>
                   <div className="space-y-1.5">
                     <p className="text-[11px] font-medium text-muted-foreground">Suggested</p>
