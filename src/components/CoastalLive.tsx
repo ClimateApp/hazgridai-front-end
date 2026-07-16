@@ -31,6 +31,8 @@ type Msg = {
   status?: string;
   planSteps?: string[];
   planDone?: number[];
+  stepSecs?: Record<number, number>;   // completed step index -> duration (s)
+  curStepStart?: number;               // epoch ms when the current step began
   error?: string;
   startedAt?: number;
 };
@@ -64,6 +66,12 @@ export default function CoastalLive() {
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
   const [opening, setOpening] = useState(false);
   const [fatal, setFatal] = useState<string | null>(null);
+  const [, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!chatSending) return;
+    const id = window.setInterval(() => setClockTick((t) => t + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [chatSending]);
 
   // ------------------------------- map ---------------------------------------
   useEffect(() => {
@@ -273,16 +281,27 @@ export default function CoastalLive() {
         const s = await fetch(`${apiBase()}/turn/${job_id}`);
         if (!s.ok) throw new Error(`HTTP ${s.status}`);
         const d = await s.json();
-        const progress: { msg: string }[] = d.progress || [];
+        const progress: { msg: string; t?: string }[] = d.progress || [];
         let planSteps: string[] | undefined;
         const planDone: number[] = [];
+        const stepSecs: Record<number, number> = {};
         let status = "";
+        let boundary: number | null = null;   // epoch ms when the current step started
         for (const p of progress) {
-          if (p.msg.startsWith("PLAN::")) { try { planSteps = JSON.parse(p.msg.slice(6)); } catch { /* noop */ } }
-          else if (p.msg.startsWith("STEP_DONE::")) { const i = parseInt(p.msg.slice(11), 10); if (!Number.isNaN(i)) planDone.push(i); }
-          else status = p.msg;
+          const ts = p.t ? Date.parse(p.t) : NaN;
+          if (p.msg.startsWith("PLAN::")) {
+            try { planSteps = JSON.parse(p.msg.slice(6)); } catch { /* noop */ }
+            if (!Number.isNaN(ts)) boundary = ts;
+          } else if (p.msg.startsWith("STEP_DONE::")) {
+            const i = parseInt(p.msg.slice(11), 10);
+            if (!Number.isNaN(i)) {
+              planDone.push(i);
+              if (boundary != null && !Number.isNaN(ts)) stepSecs[i] = Math.max(0, Math.round((ts - boundary) / 1000));
+              if (!Number.isNaN(ts)) boundary = ts;
+            }
+          } else status = p.msg;
         }
-        updateLast({ status, planSteps, planDone });
+        updateLast({ status, planSteps, planDone, stepSecs, curStepStart: boundary ?? undefined });
         if (d.status === "done") {
           settled = true; clear();
           await finishTurn(sid, d.result);
@@ -516,6 +535,14 @@ export default function CoastalLive() {
                                       : isCurrent ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
                                       : <Circle className="w-3.5 h-3.5 shrink-0 opacity-40" />}
                                     <span>{step}</span>
+                                    {isDone && m.stepSecs?.[si] != null && (
+                                      <span className="ml-auto text-[10px] tabular-nums no-underline text-muted-foreground">{m.stepSecs[si]}s</span>
+                                    )}
+                                    {isCurrent && m.curStepStart && (
+                                      <span className="ml-auto text-[10px] tabular-nums text-primary">
+                                        {Math.max(0, Math.round((Date.now() - m.curStepStart) / 1000))}s
+                                      </span>
+                                    )}
                                   </div>
                                   {isCurrent && m.status && (
                                     <div key={m.status} className="ml-[22px] mt-0.5 text-[11px] italic text-muted-foreground truncate">{m.status}</div>
