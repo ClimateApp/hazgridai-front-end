@@ -22,7 +22,11 @@ type Msg = {
 
 // Local-dev bypass: set VITE_RISK_API_URL (e.g. http://localhost:8010/risk/csv) to call the
 // FireRisk service directly instead of the Supabase edge function.
+// Resolution order: per-browser override (localStorage "risk_api_url") -> build-time
+// env (local dev) -> Supabase edge function. The override lets a production-site
+// browser use a local backend: localStorage.setItem("risk_api_url", "http://localhost:8010/risk/csv")
 const RISK_API_URL =
+  (typeof localStorage !== "undefined" ? localStorage.getItem("risk_api_url") : null) ||
   (import.meta.env.VITE_RISK_API_URL as string | undefined) ||
   `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wildfire-risk-csv`;
 const RISK_API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
