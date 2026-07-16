@@ -109,19 +109,19 @@ const Index = () => {
                        </TabsTrigger>
                          <TabsTrigger value="live-wildfire" className="gap-1.5">
                            <Flame className="w-4 h-4" />
-                           Wildfire Live
+                           Wildfire Risk: Event-Based
                          </TabsTrigger>
                           <TabsTrigger value="wildfire" className="gap-1.5">
                             <Flame className="w-4 h-4" />
-                            Wildfire Risk
+                            Wildfire Risk: Stochastic
                           </TabsTrigger>
                         <TabsTrigger value="hurricane" className="gap-1.5">
                           <Wind className="w-4 h-4" />
-                          Coastal Flood Live
+                          Coastal Flood Risk: Event-Based
                         </TabsTrigger>
                         <TabsTrigger value="flood" className="gap-1.5">
                           <Waves className="w-4 h-4" />
-                          Flood Risk
+                          Coastal Flood Risk: Stochastic
                         </TabsTrigger>
                       </TabsList>
                    </div>
@@ -327,7 +327,7 @@ const Index = () => {
                               </Button>
                             ) : (
                               <Button size="lg" variant="outline" onClick={() => setActiveTab("live-wildfire")}>
-                                Open Wildfire Live
+                                Open Wildfire Risk: Event-Based
                               </Button>
                             )}
                           </div>
@@ -728,13 +728,13 @@ const Index = () => {
                       <section className="grid md:grid-cols-2 gap-8 pb-8">
                         {[
                           {
-                            title: "Coastal Flood Live",
+                            title: "Coastal Flood Risk: Event-Based",
                             caption:
                               "Hurricane-driven surge and inundation for a single event, computed by the AI model in seconds.",
                             src: floodSingleEventDemo.url,
                           },
                           {
-                            title: "Flood Risk",
+                            title: "Coastal Flood Risk: Stochastic",
                             caption:
                               "Stochastic coastal flood risk — thousands of synthetic events aggregated into probabilistic hazard.",
                             src: floodStochasticDemo.url,
@@ -746,7 +746,7 @@ const Index = () => {
                             src: palisadesWildfireDemo.url,
                           },
                           {
-                            title: "Wildfire Risk",
+                            title: "Wildfire Risk: Stochastic",
                             caption:
                               "Stochastic wildfire modeling — burn probability surfaces from large ensembles of simulated fires.",
                             src: fireStochasticDemo.url,

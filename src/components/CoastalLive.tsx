@@ -446,7 +446,7 @@ export default function CoastalLive() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Waves className="w-5 h-5 text-accent" />
-              <h2 className="text-lg font-semibold text-foreground">Coastal Flood Live</h2>
+              <h2 className="text-lg font-semibold text-foreground">Coastal Flood Risk: Event-Based</h2>
             </div>
             {sessionId && (
               <Button variant="ghost" size="sm" onClick={newStorm} title="Start over with a new storm">
