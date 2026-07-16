@@ -273,7 +273,11 @@ const HurricaneChat = () => {
     ) => {
       // Local-dev bypass: set VITE_COASTAL_API_URL (e.g. http://localhost:8020) to call the
       // CoastalFloodAIModel service directly (no Supabase function, no auth required).
-      const localApi = import.meta.env.VITE_COASTAL_API_URL as string | undefined;
+      // Per-browser override first (production browser -> local backend), then build-time env:
+      // localStorage.setItem("coastal_api_url", "http://localhost:8020")
+      const localApi =
+        (typeof localStorage !== "undefined" ? localStorage.getItem("coastal_api_url") : null) ||
+        (import.meta.env.VITE_COASTAL_API_URL as string | undefined);
       if (!localApi && !session?.access_token) return;
       const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hurricane-predict`;
       const authHeaders: Record<string, string> = session?.access_token
