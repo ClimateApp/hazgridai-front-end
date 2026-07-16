@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   Waves, Loader2, Send, Square, CheckCircle2, Circle, ChevronDown, ChevronRight,
-  Upload, MessageSquare, RotateCcw,
+  Upload, MessageSquare, RotateCcw, Paperclip,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
@@ -48,6 +48,7 @@ export default function CoastalLive() {
   const activeJobRef = useRef<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const pointsInputRef = useRef<HTMLInputElement | null>(null);
 
   const { user } = useAuth();
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -335,6 +336,22 @@ export default function CoastalLive() {
     } catch { localStorage.removeItem(ACTIVE_JOB_KEY); }
   };
 
+  const uploadPoints = async (f: File) => {
+    if (!sessionId) return;
+    const fd = new FormData();
+    fd.append("file", f);
+    try {
+      const r = await fetch(`${apiBase()}/session/${sessionId}/points`, { method: "POST", body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.detail || `HTTP ${r.status}`);
+      const note = `📎 Attached ${d.points} exposure locations from ${f.name} — ask me to "calculate losses at my locations".`;
+      setMessages((prev) => [...prev, { role: "assistant", content: note }]);
+      saveMessage(conversationId, "assistant", note);
+    } catch (e: any) {
+      setMessages((prev) => [...prev, { role: "assistant", content: "", error: `CSV upload failed: ${e.message}` }]);
+    }
+  };
+
   const sendMessage = async () => {
     const text = chatInput.trim();
     if (!text || !sessionId || chatSending) return;
@@ -553,6 +570,14 @@ export default function CoastalLive() {
 
           <div className="p-3 border-t border-border">
             <div className="flex gap-2 items-end">
+              <input ref={pointsInputRef} type="file" accept=".csv" className="hidden"
+                     onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPoints(f); e.target.value = ""; }} />
+              <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0"
+                      disabled={!sessionId || chatSending}
+                      onClick={() => pointsInputRef.current?.click()}
+                      title="Attach a CSV of locations (id, lon, lat) for loss estimation">
+                <Paperclip className="w-4 h-4" />
+              </Button>
               <Textarea
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
