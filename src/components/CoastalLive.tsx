@@ -160,7 +160,7 @@ export default function CoastalLive() {
     overlaysRef.current = new Map();
     setLegend([]); setHiddenRuns(new Set());
     const sid = localStorage.getItem(`coastal_session_${id}`);
-    if (sid) await restoreSession(sid, false);
+    if (sid) { await restoreSession(sid, false); await resumeActiveTurn(sid); }
     else { setSessionId(null); setStormName(null); setParamsCollapsed(false); }
   }, [restoreSession]);
 
@@ -184,7 +184,7 @@ export default function CoastalLive() {
       })();
     } else {
       const sid = localStorage.getItem(SESSION_KEY);
-      if (sid) { initDoneRef.current = true; restoreSession(sid); }
+      if (sid) { initDoneRef.current = true; restoreSession(sid).then(() => resumeActiveTurn(sid)); }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -250,8 +250,89 @@ export default function CoastalLive() {
     pollRef.current = null;
     activeJobRef.current = null;
     if (jid) { try { await fetch(`${apiBase()}/cancel/${jid}`, { method: "POST" }); } catch { /* best-effort */ } }
+    localStorage.removeItem(ACTIVE_JOB_KEY);
     updateLast({ pending: false, error: "⏹ Stopped by user", status: "" });
     setChatSending(false);
+  };
+
+  const ACTIVE_JOB_KEY = "coastal_active_job";
+
+  const startPolling = (job_id: string, sid: string) => {
+    activeJobRef.current = job_id;
+    localStorage.setItem(ACTIVE_JOB_KEY, JSON.stringify({ job_id, sid, convId: conversationId }));
+    let settled = false;
+    const clear = () => {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+      pollRef.current = null; activeJobRef.current = null;
+      localStorage.removeItem(ACTIVE_JOB_KEY);
+    };
+    const tick = async () => {
+      if (settled) return;
+      try {
+        const s = await fetch(`${apiBase()}/turn/${job_id}`);
+        if (!s.ok) throw new Error(`HTTP ${s.status}`);
+        const d = await s.json();
+        const progress: { msg: string }[] = d.progress || [];
+        let planSteps: string[] | undefined;
+        const planDone: number[] = [];
+        let status = "";
+        for (const p of progress) {
+          if (p.msg.startsWith("PLAN::")) { try { planSteps = JSON.parse(p.msg.slice(6)); } catch { /* noop */ } }
+          else if (p.msg.startsWith("STEP_DONE::")) { const i = parseInt(p.msg.slice(11), 10); if (!Number.isNaN(i)) planDone.push(i); }
+          else status = p.msg;
+        }
+        updateLast({ status, planSteps, planDone });
+        if (d.status === "done") {
+          settled = true; clear();
+          await finishTurn(sid, d.result);
+          setChatSending(false);
+        } else if (d.status === "cancelled") {
+          settled = true; clear();
+          updateLast({ pending: false, error: "⏹ Stopped by user", status: "" });
+          setChatSending(false);
+        } else if (d.status === "error") {
+          settled = true; clear();
+          updateLast({ pending: false, error: d.error || "Turn failed", status: "" });
+          setChatSending(false);
+        }
+      } catch (e: any) {
+        settled = true; clear();
+        updateLast({
+          pending: false, status: "",
+          error: e.message?.includes("Failed to fetch") ? "Cannot reach server — check API base URL" : e.message,
+        });
+        setChatSending(false);
+      }
+    };
+    pollRef.current = window.setInterval(tick, 5000);
+    setTimeout(tick, 1500);
+  };
+
+  // Re-attach to a turn that was in flight when the tab unmounted (the backend
+  // kept running it; only the page lost track).
+  const resumeActiveTurn = async (sid: string) => {
+    const raw = localStorage.getItem(ACTIVE_JOB_KEY);
+    if (!raw) return;
+    try {
+      const { job_id, sid: jobSid } = JSON.parse(raw);
+      if (jobSid !== sid) return;
+      const r = await fetch(`${apiBase()}/turn/${job_id}`);
+      if (!r.ok) { localStorage.removeItem(ACTIVE_JOB_KEY); return; }
+      const d = await r.json();
+      if (d.status === "queued" || d.status === "running") {
+        setMessages((prev) => [...prev, { role: "assistant", content: "", pending: true,
+          status: "resuming…", startedAt: Date.now() }]);
+        setChatSending(true);
+        startPolling(job_id, sid);
+      } else {
+        if (d.status === "done" && d.result?.reply) {
+          setMessages((prev) => [...prev, { role: "assistant", content: d.result.reply }]);
+          saveMessage(conversationId, "assistant", d.result.reply);
+          for (const label of d.result.runs || []) await addRunOverlay(sid, label);
+        }
+        localStorage.removeItem(ACTIVE_JOB_KEY);
+      }
+    } catch { localStorage.removeItem(ACTIVE_JOB_KEY); }
   };
 
   const sendMessage = async () => {
@@ -269,57 +350,7 @@ export default function CoastalLive() {
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const { job_id } = await r.json();
-      activeJobRef.current = job_id;
-
-      let settled = false;
-      const tick = async () => {
-        if (settled) return;
-        try {
-          const s = await fetch(`${apiBase()}/turn/${job_id}`);
-          if (!s.ok) throw new Error(`HTTP ${s.status}`);
-          const d = await s.json();
-          const progress: { msg: string }[] = d.progress || [];
-          let planSteps: string[] | undefined;
-          const planDone: number[] = [];
-          let status = "";
-          for (const p of progress) {
-            if (p.msg.startsWith("PLAN::")) { try { planSteps = JSON.parse(p.msg.slice(6)); } catch { /* noop */ } }
-            else if (p.msg.startsWith("STEP_DONE::")) { const i = parseInt(p.msg.slice(11), 10); if (!Number.isNaN(i)) planDone.push(i); }
-            else status = p.msg;
-          }
-          updateLast({ status, planSteps, planDone });
-          if (d.status === "done") {
-            settled = true;
-            if (pollRef.current) window.clearInterval(pollRef.current);
-            pollRef.current = null; activeJobRef.current = null;
-            await finishTurn(sessionId, d.result);
-            setChatSending(false);
-          } else if (d.status === "cancelled") {
-            settled = true;
-            if (pollRef.current) window.clearInterval(pollRef.current);
-            pollRef.current = null; activeJobRef.current = null;
-            updateLast({ pending: false, error: "⏹ Stopped by user", status: "" });
-            setChatSending(false);
-          } else if (d.status === "error") {
-            settled = true;
-            if (pollRef.current) window.clearInterval(pollRef.current);
-            pollRef.current = null; activeJobRef.current = null;
-            updateLast({ pending: false, error: d.error || "Turn failed", status: "" });
-            setChatSending(false);
-          }
-        } catch (e: any) {
-          settled = true;
-          if (pollRef.current) window.clearInterval(pollRef.current);
-          pollRef.current = null; activeJobRef.current = null;
-          updateLast({
-            pending: false, status: "",
-            error: e.message?.includes("Failed to fetch") ? "Cannot reach server — check API base URL" : e.message,
-          });
-          setChatSending(false);
-        }
-      };
-      pollRef.current = window.setInterval(tick, 5000);
-      setTimeout(tick, 1500);
+      startPolling(job_id, sessionId);
     } catch (e: any) {
       updateLast({ pending: false, error: e.message, status: "" });
       setChatSending(false);
@@ -487,8 +518,31 @@ export default function CoastalLive() {
                     ) : m.error ? (
                       <div className="text-xs text-destructive break-words">{m.error}</div>
                     ) : (
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_table]:text-xs">
-                        <ReactMarkdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{m.content}</ReactMarkdown>
+                      <div className="text-sm space-y-2 max-w-full">
+                        <ReactMarkdown
+                          remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
+                          components={{
+                            h1: ({ children }) => <h3 className="text-sm font-bold mt-3 mb-1">{children}</h3>,
+                            h2: ({ children }) => <h3 className="text-sm font-bold mt-3 mb-1">{children}</h3>,
+                            h3: ({ children }) => <h4 className="text-[13px] font-semibold mt-2 mb-1">{children}</h4>,
+                            p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
+                            ul: ({ children }) => <ul className="my-1 ml-4 list-disc space-y-0.5">{children}</ul>,
+                            ol: ({ children }) => <ol className="my-1 ml-4 list-decimal space-y-0.5">{children}</ol>,
+                            li: ({ children }) => <li className="leading-snug">{children}</li>,
+                            strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                            code: ({ children }) => <code className="rounded bg-muted px-1 py-0.5 text-[11px] font-mono">{children}</code>,
+                            table: ({ children }) => (
+                              <div className="my-2 -mx-1 overflow-x-auto rounded-md border border-border">
+                                <table className="w-full border-collapse text-xs">{children}</table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-muted/70">{children}</thead>,
+                            tbody: ({ children }) => <tbody className="divide-y divide-border">{children}</tbody>,
+                            tr: ({ children }) => <tr className="hover:bg-muted/30">{children}</tr>,
+                            th: ({ children }) => <th className="px-2 py-1.5 text-left font-semibold text-foreground border-b border-border whitespace-nowrap">{children}</th>,
+                            td: ({ children }) => <td className="px-2 py-1.5 text-foreground/90 align-top">{children}</td>,
+                          }}
+                        >{m.content}</ReactMarkdown>
                       </div>
                     )}
                   </div>
