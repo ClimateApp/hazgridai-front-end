@@ -545,25 +545,30 @@ const LiveWildfire = () => {
           if (!evRes.ok) continue;
           ev = await evRes.json();
         }
-        // Evacuation roads: dashed red-and-yellow (solid yellow base + red dash overlay).
-        const roadsBase = L.geoJSON(ev, {
+        // Evacuation roads. The network can now be THOUSANDS of residential segments
+        // (statewide detailed roads) — render on canvas (no per-line DOM), color by
+        // status, and only give permanent labels to the roads that matter (cut/at
+        // risk, capped) or every DOM label freezes the page.
+        const canvas = L.canvas({ padding: 0.3 });
+        const roadStyle = (status: string) =>
+          status === "cut" ? { color: "#dc2626", weight: 3, opacity: 0.95, dashArray: "8 6" }
+          : status === "at_risk" ? { color: "#ea580c", weight: 2.5, opacity: 0.9 }
+          : { color: "#16a34a", weight: 1.2, opacity: 0.55 };
+        const roadsLayer = L.geoJSON(ev, {
+          renderer: canvas,
           filter: (f: any) => f?.properties?.kind !== "risk_area",
-          style: () => ({ color: "#eab308", weight: 3, opacity: 0.95 }),
-        });
-        const roadsDash = L.geoJSON(ev, {
-          filter: (f: any) => f?.properties?.kind !== "risk_area",
-          style: () => ({ color: "#dc2626", weight: 3, opacity: 0.95, dashArray: "10 10" }),
+          style: (f: any) => roadStyle(f?.properties?.status),
           onEachFeature: (f: any, l: any) => {
             const p = f?.properties || {};
-            l.bindTooltip(`${p.name || "road"} — ${p.status}${p.cut_hour != null ? ` (hr ${p.cut_hour})` : ""}`);
+            l.bindTooltip(`${p.name || "road"} — ${p.status}${p.cut_hour != null ? ` (hr ${p.cut_hour})` : ""}`,
+                          { sticky: true });
           },
         });
-        const roadsLayer = L.layerGroup([roadsBase, roadsDash]);
-        // Permanent name label on each road's LONGEST segment (visible without hover).
+        // Permanent labels: longest segment per named CUT/AT-RISK road, max 50.
         const byName = new Map<string, { layer: any; len: number; p: any }>();
-        roadsDash.eachLayer((l: any) => {
+        roadsLayer.eachLayer((l: any) => {
           const p = l.feature?.properties || {};
-          if (!p.name) return;
+          if (!p.name || p.name === "unnamed road" || p.status === "open") return;
           const cs: number[][] = l.feature?.geometry?.coordinates || [];
           let len = 0;
           for (let i = 1; i < cs.length; i++)
@@ -571,13 +576,14 @@ const LiveWildfire = () => {
           const cur = byName.get(p.name);
           if (!cur || len > cur.len) byName.set(p.name, { layer: l, len, p });
         });
-        byName.forEach(({ layer, p }) => {
-          layer.unbindTooltip();
-          layer.bindTooltip(`${p.name}${p.cut_hour != null ? ` (hr ${p.cut_hour})` : ""}`,
-                            { permanent: true, direction: "center",
-                              className: p.status === "open" ? "evac-road-label-open"
-                                       : "evac-road-label" });
-        });
+        [...byName.entries()]
+          .sort((a, b) => b[1].len - a[1].len)
+          .slice(0, 50)
+          .forEach(([, { layer, p }]) => {
+            layer.unbindTooltip();
+            layer.bindTooltip(`${p.name}${p.cut_hour != null ? ` (hr ${p.cut_hour})` : ""}`,
+                              { permanent: true, direction: "center", className: "evac-road-label" });
+          });
         // Risk areas colored by TYPICAL FIRE ARRIVAL (median hour), fixed bands
         // red -> yellow: <=5h, (5-10]h, (10-15]h, (15-20]h, >20h.
         const arrivalColor = (a: number | null | undefined) =>
