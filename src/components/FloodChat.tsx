@@ -81,7 +81,7 @@ const FloodChat = () => {
       setOasisResult(d);
     } catch (e: any) {
       setOasisResult({ error: e.message?.includes("Failed to fetch")
-        ? "Cannot reach the Oasis bridge (localhost:8040) — is the local stack running?"
+        ? "Cannot reach the fmGrid service (localhost:8040) — is the local stack running?"
         : e.message });
     } finally {
       setOasisBusy(false);
@@ -609,7 +609,7 @@ ${rows}
                 </div>
 
                 <div className="w-full max-w-md mt-6 rounded-xl border border-border bg-card p-4 text-left">
-                  <p className="text-sm font-semibold text-foreground mb-1">Portfolio financial model (Oasis LMF)</p>
+                  <p className="text-sm font-semibold text-foreground mb-1">Portfolio financial model (fmGrid)</p>
                   <p className="text-xs text-muted-foreground mb-3">
                     Runs the return-period hazard as a stochastic event set over 10,000
                     simulated years — average annual loss and OEP/AEP exceedance curves
@@ -621,7 +621,7 @@ ${rows}
                            className="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs" />
                     <button onClick={runOasis} disabled={oasisBusy}
                             className="ml-auto h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50">
-                      {oasisBusy ? "Running…" : "Run Oasis model"}
+                      {oasisBusy ? "Running…" : "Run fmGrid"}
                     </button>
                   </div>
                   {oasisResult?.error && (
