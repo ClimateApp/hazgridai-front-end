@@ -95,32 +95,32 @@ const Index = () => {
                     )}
                   </div>
                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                     <TabsList>
-                       <TabsTrigger value="mission" className="gap-1.5">
+                     <TabsList className="h-9">
+                       <TabsTrigger value="mission" className="gap-1 px-2.5 text-xs">
                          Mission
                        </TabsTrigger>
-                       <TabsTrigger value="validation" className="gap-1.5">
-                         <Target className="w-4 h-4" />
+                       <TabsTrigger value="validation" className="gap-1 px-2.5 text-xs">
+                         <Target className="w-3.5 h-3.5" />
                          Validation and Efficiency
                        </TabsTrigger>
-                       <TabsTrigger value="demos" className="gap-1.5">
-                         <MonitorPlay className="w-4 h-4" />
+                       <TabsTrigger value="demos" className="gap-1 px-2.5 text-xs">
+                         <MonitorPlay className="w-3.5 h-3.5" />
                          Demos
                        </TabsTrigger>
-                         <TabsTrigger value="live-wildfire" className="gap-1.5">
-                           <Flame className="w-4 h-4" />
+                         <TabsTrigger value="live-wildfire" className="gap-1 px-2.5 text-xs">
+                           <Flame className="w-3.5 h-3.5" />
                            Wildfire Risk: Event-Based
                          </TabsTrigger>
-                          <TabsTrigger value="wildfire" className="gap-1.5">
-                            <Flame className="w-4 h-4" />
+                          <TabsTrigger value="wildfire" className="gap-1 px-2.5 text-xs">
+                            <Flame className="w-3.5 h-3.5" />
                             Wildfire Risk: Stochastic
                           </TabsTrigger>
-                        <TabsTrigger value="hurricane" className="gap-1.5">
-                          <Wind className="w-4 h-4" />
+                        <TabsTrigger value="hurricane" className="gap-1 px-2.5 text-xs">
+                          <Wind className="w-3.5 h-3.5" />
                           Coastal Flood Risk: Event-Based
                         </TabsTrigger>
-                        <TabsTrigger value="flood" className="gap-1.5">
-                          <Waves className="w-4 h-4" />
+                        <TabsTrigger value="flood" className="gap-1 px-2.5 text-xs">
+                          <Waves className="w-3.5 h-3.5" />
                           Coastal Flood Risk: Stochastic
                         </TabsTrigger>
                       </TabsList>
