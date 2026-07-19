@@ -26,6 +26,10 @@ export type InsuranceSettings = { deductible: number; policyLimit: number };
 // Local-dev bypass: set VITE_FLOOD_API_URL (e.g. http://localhost:8030/raster/csv) to call
 // the floodrisk service directly instead of the Supabase edge function.
 // Per-browser override first: localStorage.setItem("flood_api_url", "http://localhost:8030/raster/csv")
+const OASIS_API_URL =
+  (typeof localStorage !== "undefined" ? localStorage.getItem("oasis_api_url") : null) ||
+  "http://localhost:8040";
+
 const CSV_API_URL =
   (typeof localStorage !== "undefined" ? localStorage.getItem("flood_api_url") : null) ||
   (import.meta.env.VITE_FLOOD_API_URL as string | undefined) ||
@@ -60,6 +64,29 @@ const FloodChat = () => {
   const [showChartForIndex, setShowChartForIndex] = useState<number | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [oasisBusy, setOasisBusy] = useState(false);
+  const [oasisResult, setOasisResult] = useState<any>(null);
+  const [oasisDed, setOasisDed] = useState("5000");
+
+  const runOasis = async () => {
+    setOasisBusy(true);
+    setOasisResult(null);
+    try {
+      const r = await fetch(`${OASIS_API_URL}/flood/stochastic`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deductible: Number(oasisDed) || 0, samples: 25 }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.detail || `HTTP ${r.status}`);
+      setOasisResult(d);
+    } catch (e: any) {
+      setOasisResult({ error: e.message?.includes("Failed to fetch")
+        ? "Cannot reach the Oasis bridge (localhost:8040) — is the local stack running?"
+        : e.message });
+    } finally {
+      setOasisBusy(false);
+    }
+  };
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
   const [insuranceSettings, setInsuranceSettingsState] = useState<InsuranceSettings>({
     deductible: 1000,
@@ -579,6 +606,65 @@ ${rows}
                       "{ex}"
                     </button>
                   ))}
+                </div>
+
+                <div className="w-full max-w-md mt-6 rounded-xl border border-border bg-card p-4 text-left">
+                  <p className="text-sm font-semibold text-foreground mb-1">Portfolio financial model (Oasis LMF)</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Runs the return-period hazard as a stochastic event set over 10,000
+                    simulated years — average annual loss and OEP/AEP exceedance curves
+                    across the coastal building stock. Local computation (~2–4 min).
+                  </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="text-xs text-muted-foreground">Deductible $</label>
+                    <input value={oasisDed} onChange={(e) => setOasisDed(e.target.value)}
+                           className="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs" />
+                    <button onClick={runOasis} disabled={oasisBusy}
+                            className="ml-auto h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50">
+                      {oasisBusy ? "Running…" : "Run Oasis model"}
+                    </button>
+                  </div>
+                  {oasisResult?.error && (
+                    <p className="text-xs text-destructive">{oasisResult.error}</p>
+                  )}
+                  {oasisResult && !oasisResult.error && (
+                    <div className="space-y-2 text-xs">
+                      <p>
+                        <span className="font-semibold">{oasisResult.locations_modeled?.toLocaleString()}</span> locations ·
+                        exposure <span className="font-semibold">${(oasisResult.exposed_value_usd / 1e9).toFixed(1)}B</span> ·
+                        AAL <span className="font-semibold text-foreground">${(oasisResult.groundup?.aal_usd / 1e6).toFixed(0)}M</span>
+                        {oasisResult.insured?.aal_usd != null && (
+                          <> · insured AAL <span className="font-semibold">${(oasisResult.insured.aal_usd / 1e6).toFixed(0)}M</span></>
+                        )}
+                      </p>
+                      <div className="overflow-x-auto rounded-md border border-border">
+                        <table className="w-full text-[11px]">
+                          <thead className="bg-muted/70">
+                            <tr><th className="px-2 py-1 text-left">Return period</th>
+                                <th className="px-2 py-1 text-right">Ground-up loss (OEP)</th>
+                                {oasisResult.insured && <th className="px-2 py-1 text-right">Insured (OEP)</th>}</tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {[2, 5, 10, 25, 50, 100, 200, 500].map((rp) => (
+                              <tr key={rp}>
+                                <td className="px-2 py-1">{rp}-year</td>
+                                <td className="px-2 py-1 text-right">
+                                  {oasisResult.groundup?.oep_curve?.[rp] != null
+                                    ? `$${(oasisResult.groundup.oep_curve[rp] / 1e9).toFixed(2)}B` : "—"}
+                                </td>
+                                {oasisResult.insured && (
+                                  <td className="px-2 py-1 text-right">
+                                    {oasisResult.insured?.oep_curve?.[rp] != null
+                                      ? `$${(oasisResult.insured.oep_curve[rp] / 1e9).toFixed(2)}B` : "—"}
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
