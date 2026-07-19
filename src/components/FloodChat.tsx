@@ -13,12 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Waves, Loader2, Paperclip, FileText, X } from "lucide-react";
 import { extractAllFloodData, type FloodChartPoint } from "@/lib/flood-data";
 import { recalculateGrossLossInContent } from "@/lib/recalculate-gross-loss";
+import {
+  FmGridPlanner,
+  FmGridResults,
+  type FmGridData,
+  type FmPlannerStep,
+} from "@/components/FmGridResults";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
   chart?: { data: FloodChartPoint[]; ffe: number };
   result?: { csvText: string; filename: string };
+  planner?: FmPlannerStep[];
+  fin?: FmGridData;
 };
 
 export type InsuranceSettings = { deductible: number; policyLimit: number };
@@ -51,8 +59,6 @@ const parseCsvToResult = (csvText: string, filename: string): FloodResult => {
 };
 
 // ---- fmGrid in-chat flow: intent + deductible parsing + result formatting ----
-const FIN_RPS = ["2", "5", "10", "25", "50", "100", "200", "500"];
-
 const isFinancialIntent = (t: string) => {
   const l = t.toLowerCase();
   if (/fmgrid/.test(l)) return true;
@@ -86,37 +92,20 @@ const dedFromReply = (t: string): number | null => {
   return Math.round(parseFloat(m[1]) * (m[2] ? 1000 : 1));
 };
 
-const fmtB = (v: number) => `$${(v / 1e9).toFixed(2)}B`;
-const fmtM = (v: number) => `$${(v / 1e6).toLocaleString("en-US", { maximumFractionDigits: 0 })}M`;
-
-const formatFinancialReply = (d: any, deductible: number): string => {
-  const gu = d.groundup ?? {};
-  const ins = d.insured;
-  const oepRows = FIN_RPS.map((rp) => {
-    const g = gu.oep_curve?.[rp];
-    const i = ins?.oep_curve?.[rp];
-    return ins
-      ? `| ${rp}-year | ${g != null ? fmtB(g) : "N/A"} | ${i != null ? fmtB(i) : "N/A"} |`
-      : `| ${rp}-year | ${g != null ? fmtB(g) : "N/A"} |`;
-  }).join("\n");
-  const insAal = ins?.aal_usd != null ? `\n| **Average annual loss (insured)** | **${fmtM(ins.aal_usd)}** |` : "";
-  return `# Portfolio Financial Model (fmGrid)
-
-| Metric | Value |
-|-----------|-------|
-| Locations modeled | ${(d.locations_modeled ?? 0).toLocaleString()} |
-| Exposed value | ${fmtB(d.exposed_value_usd ?? 0)} |
-| Deductible | $${deductible.toLocaleString()} per location |
-| Simulated years | ${(d.simulated_years ?? 10000).toLocaleString()} |
-| **Average annual loss (ground-up)** | **${fmtM(gu.aal_usd ?? 0)}** |${insAal}
-
-# Loss Exceedance (OEP)
-
-| Return Period | Ground-up Loss ${ins ? "| Insured Loss " : ""}|
-|---------------|----------------${ins ? "|--------------" : ""}|
-${oepRows}
-
-*OEP = occurrence exceedance probability: the loss exceeded by the worst event in a year at the given return period.*`;
+// short text summary saved as the message content (full data renders from `fin`)
+const finSummary = (fin: FmGridData, deductible: number): string => {
+  const gu = fin.groundup ?? {};
+  const insAal =
+    fin.insured?.aal_usd != null
+      ? ` and an insured AAL of **$${(fin.insured.aal_usd / 1e6).toFixed(0)}M** after the $${deductible.toLocaleString()}/location deductible`
+      : "";
+  return (
+    `**fmGrid portfolio financial model complete.** Modeled ` +
+    `${(fin.locations_modeled ?? 0).toLocaleString()} locations ` +
+    `($${((fin.exposed_value_usd ?? 0) / 1e9).toFixed(1)}B exposed value) — ` +
+    `ground-up average annual loss of **$${((gu.aal_usd ?? 0) / 1e6).toFixed(0)}M**${insAal}. ` +
+    `Event losses per hazard band and the OEP/AEP exceedance curves are below.`
+  );
 };
 
 const formatBytes = (n: number) => {
@@ -158,15 +147,22 @@ const FloodChat = () => {
   };
   const [awaitingDeductible, setAwaitingDeductible] = useState(false);
 
-  // In-chat fmGrid run: user message + progress note, then swap in the results.
+  // In-chat fmGrid run: start a bridge job, poll it so the planner checklist
+  // updates live, then swap in the summary + full results (tables + curves).
   const runFinancialInChat = async (content: string, deductible: number) => {
     const userMessage: Message = { role: "user", content };
-    const note =
-      `Running the fmGrid portfolio financial model with a $${deductible.toLocaleString()}` +
-      `/location deductible — the full coastal building stock over 10,000 simulated years. ` +
-      `This takes ~2–4 minutes…`;
-    setMessages((prev) => [...prev, userMessage, { role: "assistant", content: note }]);
+    const intro =
+      `Running the **fmGrid** portfolio financial model — the return-period hazard as a ` +
+      `stochastic event set over 10,000 simulated years, with a ` +
+      `$${deductible.toLocaleString()}/location deductible. Progress below (~2–4 minutes):`;
+    setMessages((prev) => [...prev, userMessage, { role: "assistant", content: intro, planner: [] }]);
     setIsLoading(true);
+    const patchLast = (patch: Partial<Message>) =>
+      setMessages((prev) => {
+        const u = [...prev];
+        u[u.length - 1] = { ...u[u.length - 1], ...patch };
+        return u;
+      });
     let convId = conversationId;
     if (!convId) {
       convId = await createConversation(content.slice(0, 50));
@@ -174,29 +170,39 @@ const FloodChat = () => {
     }
     if (convId) await saveMessage(convId, "user", content);
     try {
-      const r = await fetch(`${OASIS_API_URL}/flood/stochastic`, {
+      const r = await fetch(`${OASIS_API_URL}/flood/stochastic/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deductible, samples: 25 }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d?.detail || `HTTP ${r.status}`);
-      const reply = formatFinancialReply(d, deductible);
-      setMessages((prev) => {
-        const u = [...prev];
-        u[u.length - 1] = { role: "assistant", content: reply };
-        return u;
-      });
-      if (convId) await saveMessage(convId, "assistant", reply);
+      const jobId: string = d.job_id;
+
+      const deadline = Date.now() + 15 * 60 * 1000;
+      let steps: FmPlannerStep[] = [];
+      for (;;) {
+        if (Date.now() > deadline) throw new Error("fmGrid run timed out after 15 minutes");
+        await new Promise((res) => setTimeout(res, 2000));
+        const jr = await fetch(`${OASIS_API_URL}/flood/stochastic/jobs/${jobId}`);
+        const j = await jr.json();
+        if (!jr.ok) throw new Error(j?.detail || `HTTP ${jr.status}`);
+        steps = j.steps ?? [];
+        patchLast({ planner: steps });
+        if (j.status === "error") throw new Error(j.error || "fmGrid run failed");
+        if (j.status === "done") {
+          const fin: FmGridData = j.result;
+          const reply = finSummary(fin, deductible);
+          patchLast({ content: reply, fin });
+          if (convId) await saveMessage(convId, "assistant", reply, { fin, planner: steps });
+          break;
+        }
+      }
     } catch (e: any) {
       const msg = e?.message?.includes("Failed to fetch")
         ? "Cannot reach the fmGrid service (localhost:8040) — is the local stack running?"
         : e?.message || "fmGrid run failed";
-      setMessages((prev) => {
-        const u = [...prev];
-        u[u.length - 1] = { role: "assistant", content: `Error: ${msg}` };
-        return u;
-      });
+      patchLast({ content: `Error: ${msg}`, planner: undefined });
       if (convId) await saveMessage(convId, "assistant", `Error: ${msg}`);
     } finally {
       setIsLoading(false);
@@ -312,11 +318,21 @@ const FloodChat = () => {
           meta && Array.isArray((meta as { data?: unknown }).data)
             ? (meta as Message["chart"])
             : undefined;
+        const fin =
+          meta && typeof (meta as { fin?: unknown }).fin === "object"
+            ? ((meta as { fin: FmGridData }).fin)
+            : undefined;
+        const planner =
+          fin && Array.isArray((meta as { planner?: unknown }).planner)
+            ? ((meta as { planner: FmPlannerStep[] }).planner)
+            : undefined;
         return {
           role: m.role as "user" | "assistant",
           content: m.content,
           chart,
           result: csvText && filename ? { csvText, filename } : undefined,
+          fin,
+          planner,
         };
       });
       setMessages(loaded);
@@ -344,7 +360,7 @@ const FloodChat = () => {
       convId: string,
       role: "user" | "assistant",
       content: string,
-      meta?: Message["chart"] | { csvText: string; filename: string }
+      meta?: Message["chart"] | { csvText: string; filename: string } | { fin: FmGridData; planner?: FmPlannerStep[] }
     ) => {
       if (!user) return;
       await supabase.from("messages").insert({
@@ -837,6 +853,8 @@ ${rows}
                     {m.result && (
                       <FloodResults result={parseCsvToResult(m.result.csvText, m.result.filename)} />
                     )}
+                    {m.planner && <FmGridPlanner steps={m.planner} />}
+                    {m.fin && <FmGridResults fin={m.fin} />}
                   </div>
                 ))}
                 {isLoading && <TypingIndicator />}
