@@ -554,7 +554,7 @@ const LiveWildfire = () => {
         // (bold for arterials, thin for local access roads)
         const roadStyle = (status: string, major: boolean) =>
           status === "cut"
-            ? { color: "#dc2626", weight: major ? 4.5 : 2, opacity: 0.95, dashArray: "8 6" }
+            ? { color: "#dc2626", weight: major ? 4.5 : 2, opacity: 0.95 }
             : { color: "#ea580c", weight: major ? 4 : 1.5, opacity: 0.9 };
         const roadsLayer = L.geoJSON(ev, {
           // 'renderer' is honored at runtime but missing from GeoJSONOptions typings
