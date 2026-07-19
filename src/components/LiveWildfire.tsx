@@ -552,12 +552,12 @@ const LiveWildfire = () => {
         const canvas = L.canvas({ padding: 0.3 });
         const roadStyle = (status: string) =>
           status === "cut" ? { color: "#dc2626", weight: 3, opacity: 0.95, dashArray: "8 6" }
-          : status === "at_risk" ? { color: "#ea580c", weight: 2.5, opacity: 0.9 }
-          : { color: "#16a34a", weight: 1.2, opacity: 0.55 };
+          : { color: "#ea580c", weight: 2.5, opacity: 0.9 };
         const roadsLayer = L.geoJSON(ev, {
           // 'renderer' is honored at runtime but missing from GeoJSONOptions typings
           ...( { renderer: canvas } as any ),
-          filter: (f: any) => f?.properties?.kind !== "risk_area",
+          // open roads are omitted from the map (kept in the data for the agent/report)
+          filter: (f: any) => f?.properties?.kind !== "risk_area" && f?.properties?.status !== "open",
           style: (f: any) => roadStyle(f?.properties?.status),
           onEachFeature: (f: any, l: any) => {
             const p = f?.properties || {};
