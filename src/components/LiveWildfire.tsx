@@ -555,7 +555,8 @@ const LiveWildfire = () => {
           : status === "at_risk" ? { color: "#ea580c", weight: 2.5, opacity: 0.9 }
           : { color: "#16a34a", weight: 1.2, opacity: 0.55 };
         const roadsLayer = L.geoJSON(ev, {
-          renderer: canvas,
+          // 'renderer' is honored at runtime but missing from GeoJSONOptions typings
+          ...( { renderer: canvas } as any ),
           filter: (f: any) => f?.properties?.kind !== "risk_area",
           style: (f: any) => roadStyle(f?.properties?.status),
           onEachFeature: (f: any, l: any) => {
