@@ -50,6 +50,75 @@ const parseCsvToResult = (csvText: string, filename: string): FloodResult => {
   };
 };
 
+// ---- fmGrid in-chat flow: intent + deductible parsing + result formatting ----
+const FIN_RPS = ["2", "5", "10", "25", "50", "100", "200", "500"];
+
+const isFinancialIntent = (t: string) => {
+  const l = t.toLowerCase();
+  if (/fmgrid/.test(l)) return true;
+  if (/financial model|portfolio (financial|model|loss|losses)/.test(l)) return true;
+  return (
+    /\b(run|calculate|compute|estimate|model)\b/.test(l) &&
+    /\b(aal|oep|aep|insured|exceedance|average annual loss)\b/.test(l)
+  );
+};
+
+// deductible stated inside the request itself ("run fmGrid with a $5k deductible")
+const dedFromIntent = (t: string): number | null => {
+  const s = t.replace(/,/g, "");
+  if (/\b(no|without|zero)\b[^.]*deductible|deductible[^.]*\b(none|zero)\b/i.test(s)) return 0;
+  const m =
+    s.match(/deductible\D{0,12}\$?\s*(\d+(?:\.\d+)?)\s*(k)?/i) ||
+    s.match(/\$\s*(\d+(?:\.\d+)?)\s*(k)?\s*(?:deductible|ded\b)/i);
+  if (!m) return null;
+  return Math.round(parseFloat(m[1]) * (m[2] ? 1000 : 1));
+};
+
+// the follow-up answer to "what deductible?" — strict so coordinates never match
+const dedFromReply = (t: string): number | null => {
+  const s = t.trim().replace(/,/g, "");
+  if (/^(no|none|zero|nothing|skip|0)\.?$/i.test(s)) return 0;
+  const m =
+    s.match(/^\$?\s*(\d+(?:\.\d+)?)\s*(k)?\.?$/i) ||
+    s.match(/\$\s*(\d+(?:\.\d+)?)\s*(k)?/) ||
+    s.match(/deductible\D{0,12}(\d+(?:\.\d+)?)\s*(k)?/i);
+  if (!m) return null;
+  return Math.round(parseFloat(m[1]) * (m[2] ? 1000 : 1));
+};
+
+const fmtB = (v: number) => `$${(v / 1e9).toFixed(2)}B`;
+const fmtM = (v: number) => `$${(v / 1e6).toLocaleString("en-US", { maximumFractionDigits: 0 })}M`;
+
+const formatFinancialReply = (d: any, deductible: number): string => {
+  const gu = d.groundup ?? {};
+  const ins = d.insured;
+  const oepRows = FIN_RPS.map((rp) => {
+    const g = gu.oep_curve?.[rp];
+    const i = ins?.oep_curve?.[rp];
+    return ins
+      ? `| ${rp}-year | ${g != null ? fmtB(g) : "N/A"} | ${i != null ? fmtB(i) : "N/A"} |`
+      : `| ${rp}-year | ${g != null ? fmtB(g) : "N/A"} |`;
+  }).join("\n");
+  const insAal = ins?.aal_usd != null ? `\n| **Average annual loss (insured)** | **${fmtM(ins.aal_usd)}** |` : "";
+  return `# Portfolio Financial Model (fmGrid)
+
+| Metric | Value |
+|-----------|-------|
+| Locations modeled | ${(d.locations_modeled ?? 0).toLocaleString()} |
+| Exposed value | ${fmtB(d.exposed_value_usd ?? 0)} |
+| Deductible | $${deductible.toLocaleString()} per location |
+| Simulated years | ${(d.simulated_years ?? 10000).toLocaleString()} |
+| **Average annual loss (ground-up)** | **${fmtM(gu.aal_usd ?? 0)}** |${insAal}
+
+# Loss Exceedance (OEP)
+
+| Return Period | Ground-up Loss ${ins ? "| Insured Loss " : ""}|
+|---------------|----------------${ins ? "|--------------" : ""}|
+${oepRows}
+
+*OEP = occurrence exceedance probability: the loss exceeded by the worst event in a year at the given return period.*`;
+};
+
 const formatBytes = (n: number) => {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
@@ -87,6 +156,53 @@ const FloodChat = () => {
       setOasisBusy(false);
     }
   };
+  const [awaitingDeductible, setAwaitingDeductible] = useState(false);
+
+  // In-chat fmGrid run: user message + progress note, then swap in the results.
+  const runFinancialInChat = async (content: string, deductible: number) => {
+    const userMessage: Message = { role: "user", content };
+    const note =
+      `Running the fmGrid portfolio financial model with a $${deductible.toLocaleString()}` +
+      `/location deductible — the full coastal building stock over 10,000 simulated years. ` +
+      `This takes ~2–4 minutes…`;
+    setMessages((prev) => [...prev, userMessage, { role: "assistant", content: note }]);
+    setIsLoading(true);
+    let convId = conversationId;
+    if (!convId) {
+      convId = await createConversation(content.slice(0, 50));
+      setConversationId(convId);
+    }
+    if (convId) await saveMessage(convId, "user", content);
+    try {
+      const r = await fetch(`${OASIS_API_URL}/flood/stochastic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deductible, samples: 25 }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.detail || `HTTP ${r.status}`);
+      const reply = formatFinancialReply(d, deductible);
+      setMessages((prev) => {
+        const u = [...prev];
+        u[u.length - 1] = { role: "assistant", content: reply };
+        return u;
+      });
+      if (convId) await saveMessage(convId, "assistant", reply);
+    } catch (e: any) {
+      const msg = e?.message?.includes("Failed to fetch")
+        ? "Cannot reach the fmGrid service (localhost:8040) — is the local stack running?"
+        : e?.message || "fmGrid run failed";
+      setMessages((prev) => {
+        const u = [...prev];
+        u[u.length - 1] = { role: "assistant", content: `Error: ${msg}` };
+        return u;
+      });
+      if (convId) await saveMessage(convId, "assistant", `Error: ${msg}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
   const [insuranceSettings, setInsuranceSettingsState] = useState<InsuranceSettings>({
     deductible: 1000,
@@ -425,6 +541,43 @@ ${rows}
   };
 
   const sendMessage = async (content: string) => {
+    // fmGrid agent flow: answer to the pending "what deductible?" question
+    if (awaitingDeductible) {
+      setAwaitingDeductible(false);
+      const ded = dedFromReply(content);
+      if (ded != null) {
+        await runFinancialInChat(content, ded);
+        return;
+      }
+      // not a deductible answer — fall through to normal handling
+    }
+    // fmGrid agent flow: request to run the portfolio financial model
+    if (isFinancialIntent(content)) {
+      const ded = dedFromIntent(content);
+      if (ded != null) {
+        await runFinancialInChat(content, ded);
+        return;
+      }
+      const q =
+        "I can run the fmGrid portfolio financial model — the return-period hazard as a " +
+        "stochastic event set over 10,000 simulated years across the coastal building stock, " +
+        "giving average annual loss and OEP exceedance curves.\n\n" +
+        'What **deductible** should I apply per location? Reply with an amount (e.g. **$5,000**) or **"none"**.';
+      const userMessage: Message = { role: "user", content };
+      setMessages((prev) => [...prev, userMessage, { role: "assistant", content: q }]);
+      let convId = conversationId;
+      if (!convId) {
+        convId = await createConversation(content.slice(0, 50));
+        setConversationId(convId);
+      }
+      if (convId) {
+        await saveMessage(convId, "user", content);
+        await saveMessage(convId, "assistant", q);
+      }
+      setAwaitingDeductible(true);
+      return;
+    }
+
     if (await runLocalPointLookup(content)) return;
 
     if (!session?.access_token) {
@@ -560,6 +713,7 @@ ${rows}
     setConversationId(null);
     setIsLoadingHistory(false);
     setPendingFile(null);
+    setAwaitingDeductible(false);
     setInsuranceSettingsState({ deductible: 1000, policyLimit: 100000 });
   };
 
@@ -596,7 +750,7 @@ ${rows}
                 <div className="grid gap-3 w-full max-w-md">
                   {[
                     "Check flood risk at -80.13493, 25.85401",
-
+                    "Run the portfolio financial model (fmGrid)",
                   ].map((ex, i) => (
                     <button
                       key={i}
