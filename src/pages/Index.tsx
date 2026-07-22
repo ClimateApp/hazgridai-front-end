@@ -117,11 +117,11 @@ const Index = () => {
                           </TabsTrigger>
                         <TabsTrigger value="hurricane" className="gap-1 px-2.5 text-xs">
                           <Wind className="w-3.5 h-3.5" />
-                          Coastal Flood Risk: Event-Based
+                          FloodGrid: Event-Based
                         </TabsTrigger>
                         <TabsTrigger value="flood" className="gap-1 px-2.5 text-xs">
                           <Waves className="w-3.5 h-3.5" />
-                          Coastal Flood Risk: Stochastic
+                          FloodGrid: Stochastic
                         </TabsTrigger>
                       </TabsList>
                    </div>
@@ -728,13 +728,13 @@ const Index = () => {
                       <section className="grid md:grid-cols-2 gap-8 pb-8">
                         {[
                           {
-                            title: "Coastal Flood Risk: Event-Based",
+                            title: "FloodGrid: Event-Based",
                             caption:
                               "Hurricane-driven surge and inundation for a single event, computed by the AI model in seconds.",
                             src: floodSingleEventDemo.url,
                           },
                           {
-                            title: "Coastal Flood Risk: Stochastic",
+                            title: "FloodGrid: Stochastic",
                             caption:
                               "Stochastic coastal flood risk — thousands of synthetic events aggregated into probabilistic hazard.",
                             src: floodStochasticDemo.url,
