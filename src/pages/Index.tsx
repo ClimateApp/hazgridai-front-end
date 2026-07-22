@@ -113,7 +113,7 @@ const Index = () => {
                          </TabsTrigger>
                           <TabsTrigger value="wildfire" className="gap-1 px-2.5 text-xs">
                             <Flame className="w-3.5 h-3.5" />
-                            Wildfire Risk: Stochastic
+                            FireGrid: Stochastic
                           </TabsTrigger>
                         <TabsTrigger value="hurricane" className="gap-1 px-2.5 text-xs">
                           <Wind className="w-3.5 h-3.5" />
@@ -746,7 +746,7 @@ const Index = () => {
                             src: palisadesWildfireDemo.url,
                           },
                           {
-                            title: "Wildfire Risk: Stochastic",
+                            title: "FireGrid: Stochastic",
                             caption:
                               "Stochastic wildfire modeling — burn probability surfaces from large ensembles of simulated fires.",
                             src: fireStochasticDemo.url,
