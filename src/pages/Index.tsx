@@ -6,6 +6,9 @@ const floodStochasticDemo = { url: `${MEDIA_BASE}/flood_stochastic_demo.mp4` };
 const palisadesWildfireDemo = { url: `${MEDIA_BASE}/Palisades_Wilfire_Simulation.mp4` };
 const snyderWildfireDemo = { url: `${MEDIA_BASE}/Snyder_Wilfire_Simulation.mp4` };
 const fireStochasticDemo = { url: `${MEDIA_BASE}/fire_stochastic_demo.mp4` };
+const palisadesFireDemo = { url: `${MEDIA_BASE}/demo01_Palisades_fire_single_scenario.mp4` };
+const napaSingleDemo = { url: `${MEDIA_BASE}/demo02_Napa_fire_single_scenario.mp4` };
+const napaEnsembleDemo = { url: `${MEDIA_BASE}/demo03_Napa_ensemble_run.mp4` };
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -727,6 +730,24 @@ const Index = () => {
                       </section>
                       <section className="grid md:grid-cols-2 gap-8 pb-8">
                         {[
+                          {
+                            title: "FireGrid: Palisades Fire",
+                            caption:
+                              "From fire simulation to loss estimation and evacuation planning.",
+                            src: palisadesFireDemo.url,
+                          },
+                          {
+                            title: "FireGrid: Napa Single Scenario",
+                            caption:
+                              "From fire simulation to loss estimation and evacuation planning.",
+                            src: napaSingleDemo.url,
+                          },
+                          {
+                            title: "FireGrid: Ensemble simulation of fire in Napa, CA",
+                            caption:
+                              "Probabilistic multi-scenario outlook with ranked Black Swan / Severe / Expected / Favorable picks and losses.",
+                            src: napaEnsembleDemo.url,
+                          },
                           {
                             title: "FloodGrid: Event-Based",
                             caption:
