@@ -39,6 +39,7 @@ type ChatMessage = {
   content: string;
   scenarios?: ScenarioInfo[];
   evacLayers?: Record<string, any>;   // evacuation GeoJSON by scenario label (persisted like footprints)
+  ensembleIgnitions?: any;            // FeatureCollection of ALL ensemble ignition points
   planSteps?: string[];               // agent-announced checklist for the in-flight turn
   planDone?: number[];                // indices of completed steps
   polygon?: any;
@@ -234,6 +235,9 @@ const LiveWildfire = () => {
   const footprintLayerRef = useRef<L.GeoJSON | null>(null);
   const scenarioLayersRef = useRef<Map<string, L.Layer>>(new Map());
   const evacLayersRef = useRef<Map<string, { roads: L.Layer; areas: L.Layer }>>(new Map());   // evacuation layers by scenario
+  const ensembleIgnLayerRef = useRef<L.Layer | null>(null);   // all-members ignition dots
+  const [ensembleIgnCount, setEnsembleIgnCount] = useState(0);
+  const [ensembleIgnVisible, setEnsembleIgnVisible] = useState(true);
   const [evacLegend, setEvacLegend] = useState<string[]>([]);      // scenario labels with evac layers (drives legend)
   const [evacHidden, setEvacHidden] = useState<{ roads: boolean; areas: boolean }>({ roads: false, areas: false });
   const containmentLayerRef = useRef<L.GeoJSON | null>(null);
@@ -404,12 +408,15 @@ const LiveWildfire = () => {
       const startedAt = typeof (meta as any).startedAt === "number" ? (meta as any).startedAt : undefined;
       const evacLayers = (meta as any).evacLayers && typeof (meta as any).evacLayers === "object"
         ? ((meta as any).evacLayers as Record<string, any>) : undefined;
+      const ensembleIgnitions = (meta as any).ensembleIgnitions && typeof (meta as any).ensembleIgnitions === "object"
+        ? (meta as any).ensembleIgnitions : undefined;
       return {
         id: m.id as string,
         role: m.role as "user" | "assistant",
         content: m.content,
         scenarios,
         evacLayers,
+        ensembleIgnitions,
         polygon: poly,
         error: err,
         status,
@@ -460,6 +467,10 @@ const LiveWildfire = () => {
       });
     });
     if (allScenarios.length) restoreScenarioLayers(allScenarios);
+
+    // Restore the all-ignitions dots from the most recent ensemble turn (if any)
+    const lastWithIgn = [...loaded].reverse().find((m) => m.ensembleIgnitions);
+    renderEnsembleIgnitions(lastWithIgn?.ensembleIgnitions ?? null);
 
     // Restore evacuation layers: prefer geojson persisted in messages (works even when
     // the backend that ran them is unreachable), fall back to live session state.
@@ -711,6 +722,34 @@ const LiveWildfire = () => {
     } catch {}
   };
 
+  // Small neutral dots for EVERY ensemble member's ignition (picks get their bold
+  // colored dot from the footprint layer on top). Pass null to clear.
+  const renderEnsembleIgnitions = async (fc: any | null) => {
+    const map = await waitForMap();
+    if (ensembleIgnLayerRef.current) {
+      map.removeLayer(ensembleIgnLayerRef.current);
+      ensembleIgnLayerRef.current = null;
+    }
+    const feats = fc?.features?.length ?? 0;
+    setEnsembleIgnCount(feats);
+    if (!feats) return;
+    const layer = L.geoJSON(fc, {
+      pointToLayer: (_f, latlng) => L.circleMarker(latlng, { radius: 4 }),
+      style: () => ({ color: "#ffffff", weight: 1.5, opacity: 0.9,
+                      fillColor: "#334155", fillOpacity: 0.85 }),
+      onEachFeature: (f, l) => {
+        const p = f.properties || {};
+        const gul = p.gul_usd != null ? ` · $${(p.gul_usd / 1e6).toFixed(0)}M` : "";
+        l.bindTooltip(
+          `${p.label ?? "member"} — ${Math.round(p.final_acres ?? 0).toLocaleString()} ac${gul}`,
+          { direction: "top", offset: L.point(0, -6) },
+        );
+      },
+    });
+    if (ensembleIgnVisible) layer.addTo(map);
+    ensembleIgnLayerRef.current = layer;
+  };
+
   const restoreScenarioLayers = async (scenarios: ScenarioInfo[]) => {
     const map = await waitForMap();
     // Clear any prior scenario layers
@@ -753,6 +792,7 @@ const LiveWildfire = () => {
     setPolygon(null);
     setContainmentLine(null);
 
+    renderEnsembleIgnitions(null);
     if (ignitionLayerRef.current && mapRef.current) {
       mapRef.current.removeLayer(ignitionLayerRef.current);
       ignitionLayerRef.current = null;
@@ -1095,6 +1135,17 @@ const LiveWildfire = () => {
 
         appendScenarioLegendEntries(newLegendEntries);
 
+        // All-members ignition dots (present only after an ensemble turn)
+        let ignFc: any = null;
+        try {
+          const ignRes = await fetch(`${apiBaseUrl}/session/${sid}/ensemble_ignitions`,
+                                     { headers: apiHeaders() });
+          if (ignRes.ok) {
+            ignFc = await ignRes.json();
+            await renderEnsembleIgnitions(ignFc);
+          }
+        } catch { /* no ensemble in this session */ }
+
         // Render evacuation roads for any scenario that now has an analysis (color by status:
         // red = cut by fire, orange = at risk, green = open egress).
         const evacDrawn = await renderEvacuationLayers(sid, stateScenarios, true);
@@ -1105,6 +1156,7 @@ const LiveWildfire = () => {
         await updateMessageRow(msgId, summary, {
           scenarios: scenariosWithGeo,
           ...(evacSmall && Object.keys(evacSmall).length ? { evacLayers: evacSmall } : {}),
+          ...(ignFc?.features?.length ? { ensembleIgnitions: ignFc } : {}),
           polygon,
           sessionId: sid,
           sessionFetchBuildings: sessionFetchBuildingsRef.current,
@@ -1531,6 +1583,30 @@ const LiveWildfire = () => {
                   />
                   <span>bold dot = ignition location</span>
                 </div>
+              )}
+              {ensembleIgnCount > 0 && (
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={ensembleIgnVisible}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setEnsembleIgnVisible(checked);
+                      const layer = ensembleIgnLayerRef.current;
+                      if (layer && mapRef.current) {
+                        if (checked) mapRef.current.addLayer(layer);
+                        else mapRef.current.removeLayer(layer);
+                      }
+                    }}
+                    className="h-3 w-3 cursor-pointer"
+                    style={{ accentColor: "#334155" }}
+                  />
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-full border border-white"
+                    style={{ backgroundColor: "#334155" }}
+                  />
+                  <span className="text-foreground">All ignitions ({ensembleIgnCount})</span>
+                </label>
               )}
             </>
           )}
