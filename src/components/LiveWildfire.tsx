@@ -953,14 +953,15 @@ const LiveWildfire = () => {
     return true;
   };
 
-  // Open a new conversational session for one fire (polygon + ignition).
+  // Open a new conversational session for one fire (polygon + ignition). A session may
+  // also open WITHOUT a polygon ("city mode"): the city-ensemble skill geocodes a named
+  // city and builds its own domain, so no perimeter is required up front.
   const openSession = useCallback(
     async (name: string, fetchBuildings: boolean): Promise<string> => {
-      if (!polygon) throw new Error("Draw or upload a fire perimeter first");
       const isoDate = new Date(ignitionDate).toISOString().replace(/\.\d{3}Z$/, "Z");
       const body = {
         name,
-        polygon,
+        polygon: polygon ?? null,
         ignition_date: isoDate,
         duration_hours: Number(duration) || 24,
         margin_km: 30,
@@ -1213,10 +1214,9 @@ const LiveWildfire = () => {
         toast.error("Wait for the current turn to finish");
         return;
       }
-      if (!polygon) {
-        toast.error("Draw or upload a fire perimeter first");
-        return;
-      }
+      // No polygon is OK ("city mode"): the agent's city-ensemble skill geocodes a named
+      // California city and builds its own domain. Perimeter-based runs still need one —
+      // the agent will ask for it if the request requires it.
 
       // Decide whether this turn requires building footprints.
       const needBuildings =
