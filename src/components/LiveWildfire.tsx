@@ -88,6 +88,14 @@ const displayNameForScenario = (label?: string) =>
 // Historical ladder order — kept only so legends from old conversations sort stably.
 const SCENARIO_LABEL_ORDER = ["real_day", "elevated_wind", "critical_fire_weather",
                               "extreme_wind_event", "urban_spread_contained", "urban_firestorm"];
+
+// City-ensemble picks: fixed legend order (worst first) + percentile suffix.
+const PICK_ORDER: Record<string, number> = {
+  "Black Swan": 0, "Severe": 1, "Expected": 2, "Favorable": 3,
+};
+const PICK_SUFFIX: Record<string, string> = {
+  "Black Swan": " (worst case)", "Severe": " (P90)", "Expected": " (P50)", "Favorable": " (P10)",
+};
 const scenarioOrderIndex = (label: string) => {
   const idx = SCENARIO_LABEL_ORDER.indexOf(label);
   return idx === -1 ? SCENARIO_LABEL_ORDER.length : idx;
@@ -1585,10 +1593,12 @@ const LiveWildfire = () => {
         )}
         {/* Legend */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-card/95 backdrop-blur border border-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1 max-w-[280px]">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-4 h-2 border-2 border-blue-500 bg-blue-500/10" />
-            <span className="text-foreground">Ignition perimeter</span>
-          </div>
+          {polygon && (
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-4 h-2 border-2 border-blue-500 bg-blue-500/10" />
+              <span className="text-foreground">Ignition perimeter</span>
+            </div>
+          )}
           {containmentLine && (
             <div className="flex items-center gap-2">
               <span
@@ -1627,7 +1637,9 @@ const LiveWildfire = () => {
                   </span>
                 </label>
               )}
-              {scenarioLegend.map((s) => {
+              {[...scenarioLegend]
+                .sort((a, b) => (PICK_ORDER[a.label] ?? 99) - (PICK_ORDER[b.label] ?? 99))
+                .map((s) => {
                 const visible = !hiddenScenarios.has(s.label);
                 return (
                   <label key={s.label} className="flex items-center gap-2 cursor-pointer select-none">
@@ -1656,20 +1668,11 @@ const LiveWildfire = () => {
                       style={{ backgroundColor: s.color + "80", borderColor: s.color }}
                     />
                     <span className="text-foreground truncate">
-                      {displayNameForScenario(s.label)} — {Math.round(s.acres).toLocaleString()} ac
+                      {displayNameForScenario(s.label)}{PICK_SUFFIX[s.label] ?? ""} — {Math.round(s.acres).toLocaleString()} ac
                     </span>
                   </label>
                 );
               })}
-              {scenarioLegend.length > 0 && (
-                <div className="flex items-center gap-2 pt-0.5 text-muted-foreground">
-                  <span
-                    className="inline-block w-3 h-3 rounded-full border-2 border-white shadow"
-                    style={{ backgroundColor: "#666" }}
-                  />
-                  <span>bold dot = ignition location</span>
-                </div>
-              )}
               {ensembleIgnCount > 0 && (
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
