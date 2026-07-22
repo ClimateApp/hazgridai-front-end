@@ -1569,7 +1569,7 @@ const LiveWildfire = () => {
         {windRose?.rose && windRoseVisible && (
           <div className="absolute bottom-4 right-4 z-[1000] bg-card/95 backdrop-blur border border-border rounded-lg px-3 py-2 shadow-lg text-xs text-foreground">
             <div className="font-medium mb-0.5">
-              Wind rose — past month{windRose.city ? ` · ${String(windRose.city).replace(/, CA$/, "")}` : ""}
+              Wind rose — past year{windRose.city ? ` · ${String(windRose.city).replace(/, CA$/, "")}` : ""}
             </div>
             <WindRoseSvg rose={windRose.rose} />
             <div className="text-muted-foreground leading-tight mt-0.5">
@@ -1704,7 +1704,7 @@ const LiveWildfire = () => {
                     background: "conic-gradient(#2563eb 0 12%, transparent 12% 25%, #2563eb 25% 37%, transparent 37% 50%, #2563eb 50% 62%, transparent 62% 75%, #2563eb 75% 87%, transparent 87%)",
                     borderRadius: "9999px",
                   }} />
-                  <span className="text-foreground">Wind rose (past month)</span>
+                  <span className="text-foreground">Wind rose (past year)</span>
                 </label>
               )}
             </>
