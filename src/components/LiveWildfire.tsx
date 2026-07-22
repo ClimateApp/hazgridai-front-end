@@ -42,6 +42,8 @@ type ChatMessage = {
   ensembleIgnitions?: any;            // FeatureCollection of ALL ensemble ignition points
   planSteps?: string[];               // agent-announced checklist for the in-flight turn
   planDone?: number[];                // indices of completed steps
+  tokensIn?: number;                  // running input tokens (streamed during the turn)
+  tokensOut?: number;                 // running output tokens
   polygon?: any;
   status?: string;
   pending?: boolean;
@@ -245,32 +247,27 @@ const StageIcon = ({ status }: { status: string }) => {
   return <Loader2 className="w-4 h-4 mt-0.5 shrink-0 animate-spin" />; // submitting / unknown
 };
 
-const StageStatus = ({ status, startedAt }: { status: string; startedAt?: number }) => {
-  const [stageStart, setStageStart] = useState<number>(() => Date.now());
+const StageStatus = ({
+  status, startedAt, tokensIn, tokensOut,
+}: { status: string; startedAt?: number; tokensIn?: number; tokensOut?: number }) => {
   const [now, setNow] = useState<number>(() => Date.now());
-  const prevStatus = useRef<string>(status);
-
-  useEffect(() => {
-    if (prevStatus.current !== status) {
-      prevStatus.current = status;
-      setStageStart(Date.now());
-    }
-  }, [status]);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, []);
 
-  const stageSec = Math.max(0, Math.floor((now - stageStart) / 1000));
   const totalSec = startedAt ? Math.max(0, Math.floor((now - startedAt) / 1000)) : null;
+  const hasTokens = (tokensIn ?? 0) > 0 || (tokensOut ?? 0) > 0;
 
   return (
     <span className="text-xs break-words">
       {status || "Working…"}{" "}
       <span className="text-muted-foreground/70 tabular-nums">
-        · {formatElapsed(stageSec)}
-        {totalSec !== null ? ` (total ${formatElapsed(totalSec)})` : ""}
+        {totalSec !== null ? `· ${formatElapsed(totalSec)}` : ""}
+        {hasTokens
+          ? ` · ${(tokensIn ?? 0).toLocaleString()} in / ${(tokensOut ?? 0).toLocaleString()} out tokens`
+          : ""}
       </span>
     </span>
   );
@@ -1273,17 +1270,23 @@ const LiveWildfire = () => {
             let planSteps: string[] | undefined;
             const planDone: number[] = [];
             let status = "";
+            let tokensIn: number | undefined;
+            let tokensOut: number | undefined;
             for (const pr of progress) {
               if (pr.msg.startsWith("PLAN::")) {
                 try { planSteps = JSON.parse(pr.msg.slice(6)); } catch { /* malformed plan */ }
               } else if (pr.msg.startsWith("STEP_DONE::")) {
                 const i = parseInt(pr.msg.slice(11), 10);
                 if (!Number.isNaN(i)) planDone.push(i);
+              } else if (pr.msg.startsWith("TOKENS::")) {
+                const [ti, to] = pr.msg.slice(8).split(",").map((x) => parseInt(x, 10));
+                if (!Number.isNaN(ti)) tokensIn = ti;
+                if (!Number.isNaN(to)) tokensOut = to;
               } else {
                 status = pr.msg;
               }
             }
-            updateAssistantById(msgId, { status, planSteps, planDone });
+            updateAssistantById(msgId, { status, planSteps, planDone, tokensIn, tokensOut });
           }
           if (data.status === "done") {
             settled = true;
@@ -2068,12 +2071,14 @@ const LiveWildfire = () => {
                         {(!m.planSteps || m.planSteps.length === 0) && (
                           <div className="flex items-start gap-2 text-muted-foreground">
                             <StageIcon status={m.status || ""} />
-                            <StageStatus status={m.status || ""} startedAt={m.startedAt} />
+                            <StageStatus status={m.status || ""} startedAt={m.startedAt}
+                                         tokensIn={m.tokensIn} tokensOut={m.tokensOut} />
                           </div>
                         )}
                         {m.planSteps && m.planSteps.length > 0 && m.startedAt && (
                           <div className="text-[11px] text-muted-foreground pl-1">
-                            <StageStatus status="" startedAt={m.startedAt} />
+                            <StageStatus status="" startedAt={m.startedAt}
+                                         tokensIn={m.tokensIn} tokensOut={m.tokensOut} />
                           </div>
                         )}
                       </div>
