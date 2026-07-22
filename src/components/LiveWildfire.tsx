@@ -105,6 +105,19 @@ const scenarioStyle = (color: string, index: number): L.PathOptions => ({
   dashArray: SCENARIO_DASHES[index % SCENARIO_DASHES.length] || undefined,
 });
 
+// Feature-aware style: ignition Point features (ensemble picks) render as a bold
+// solid dot in the scenario color; everything else uses the footprint style.
+const scenarioLayerStyle =
+  (color: string, index: number) =>
+  (feature?: any): L.PathOptions =>
+    feature?.properties?.kind === "ignition"
+      ? { color: "#ffffff", weight: 2, opacity: 1, fillColor: color, fillOpacity: 1 }
+      : scenarioStyle(color, index);
+
+// Render Point features (ignitions) as circle markers instead of default pins.
+const scenarioPointToLayer = (_f: any, latlng: L.LatLng) =>
+  L.circleMarker(latlng, { radius: 7 });
+
 function capScenarioStack<T>(items: T[], onRemove?: (item: T) => void): T[] {
   const next = [...items];
   while (next.length > MAX_SCENARIOS_ON_MAP) {
@@ -645,7 +658,7 @@ const LiveWildfire = () => {
     legend.forEach((entry, index) => {
       const layer = scenarioLayersRef.current.get(entry.label) as any;
       if (!layer) return;
-      if (typeof layer.setStyle === "function") layer.setStyle(scenarioStyle(entry.color, index));
+      if (typeof layer.setStyle === "function") layer.setStyle(scenarioLayerStyle(entry.color, index));
       if (typeof layer.bringToFront === "function") layer.bringToFront();
     });
   };
@@ -713,7 +726,8 @@ const LiveWildfire = () => {
     sortedScenarios.forEach((s, index) => {
       if (!s.geojson) return;
       const layer = L.geoJSON(s.geojson, {
-        style: scenarioStyle(s.color, index),
+        style: scenarioLayerStyle(s.color, index),
+        pointToLayer: scenarioPointToLayer,
       }).addTo(map);
       scenarioLayersRef.current.set(s.label, layer);
       legend.push({ label: s.label, color: s.color, acres: s.final_acres });
@@ -1065,7 +1079,8 @@ const LiveWildfire = () => {
               const fp = await fpRes.json();
               if (mapRef.current) {
                 const layer = L.geoJSON(fp, {
-                  style: scenarioStyle(s.color, colorOffset + i),
+                  style: scenarioLayerStyle(s.color, colorOffset + i),
+                  pointToLayer: scenarioPointToLayer,
                 }).addTo(mapRef.current);
                 scenarioLayersRef.current.set(s.label, layer);
                 newLegendEntries.push({ label: s.label, color: s.color, acres: s.final_acres });
@@ -1508,6 +1523,15 @@ const LiveWildfire = () => {
                   </label>
                 );
               })}
+              {scenarioLegend.length > 0 && (
+                <div className="flex items-center gap-2 pt-0.5 text-muted-foreground">
+                  <span
+                    className="inline-block w-3 h-3 rounded-full border-2 border-white shadow"
+                    style={{ backgroundColor: "#666" }}
+                  />
+                  <span>bold dot = ignition location</span>
+                </div>
+              )}
             </>
           )}
           {evacLegend.length > 0 && (
