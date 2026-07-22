@@ -3,7 +3,6 @@
 const MEDIA_BASE = "https://pub-abc686e5fe794fc09ebce8b4d13b4960.r2.dev";
 const floodSingleEventDemo = { url: `${MEDIA_BASE}/flood_single_event_demo.mp4` };
 const floodStochasticDemo = { url: `${MEDIA_BASE}/flood_stochastic_demo.mp4` };
-const palisadesWildfireDemo = { url: `${MEDIA_BASE}/Palisades_Wilfire_Simulation.mp4` };
 const snyderWildfireDemo = { url: `${MEDIA_BASE}/Snyder_Wilfire_Simulation.mp4` };
 const fireStochasticDemo = { url: `${MEDIA_BASE}/fire_stochastic_demo.mp4` };
 const palisadesFireDemo = { url: `${MEDIA_BASE}/demo01_Palisades_fire_single_scenario.mp4` };
@@ -759,12 +758,6 @@ const Index = () => {
                             caption:
                               "Stochastic coastal flood risk — thousands of synthetic events aggregated into probabilistic hazard.",
                             src: floodStochasticDemo.url,
-                          },
-                          {
-                            title: "Palisades Wildfire Event Simulation",
-                            caption:
-                              "High-resolution replay of the 2025 Palisades fire: spread, timing, and structure impacts.",
-                            src: palisadesWildfireDemo.url,
                           },
                           {
                             title: "FireGrid: Stochastic",
