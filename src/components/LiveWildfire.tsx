@@ -119,6 +119,56 @@ const scenarioLayerStyle =
 const scenarioPointToLayer = (_f: any, latlng: L.LatLng) =>
   L.circleMarker(latlng, { radius: 7 });
 
+// Compact SVG wind rose for the observed month behind a city ensemble.
+// Petal length = share of hours from that direction; shade = 90th-pct speed.
+const ROSE_BINS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const WindRoseSvg = ({ rose }: { rose: Record<string, any> }) => {
+  const R = 54, C = 70;
+  const maxFreq = Math.max(...ROSE_BINS.map((b) => rose[b]?.freq ?? 0), 0.001);
+  const maxP90 = Math.max(...ROSE_BINS.map((b) => rose[b]?.p90_mph ?? 0), 1);
+  const pt = (angDeg: number, r: number) => {
+    const a = (angDeg * Math.PI) / 180;
+    return `${(C + r * Math.sin(a)).toFixed(1)},${(C - r * Math.cos(a)).toFixed(1)}`;
+  };
+  return (
+    <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Wind rose">
+      {[0.5, 1].map((f) => (
+        <circle key={f} cx={C} cy={C} r={R * f} fill="none"
+                stroke="currentColor" strokeOpacity="0.15" />
+      ))}
+      {ROSE_BINS.map((b, i) => {
+        const r0 = rose[b] || {};
+        const freq = r0.freq ?? 0;
+        if (freq <= 0.001) return null;
+        const r = Math.max(4, (freq / maxFreq) * R);
+        const ang = i * 45;
+        return (
+          <polygon
+            key={b}
+            points={`${C},${C} ${pt(ang - 16, r)} ${pt(ang + 16, r)}`}
+            fill="#2563eb"
+            fillOpacity={0.35 + 0.6 * ((r0.p90_mph ?? 0) / maxP90)}
+            stroke="#1d4ed8"
+            strokeOpacity="0.5"
+            strokeWidth="0.5"
+          >
+            <title>
+              {`${b} — ${(freq * 100).toFixed(0)}% of hours · p90 ${r0.p90_mph ?? "?"} mph · max gust ${r0.max_gust_mph ?? "?"} mph`}
+            </title>
+          </polygon>
+        );
+      })}
+      {(["N", "E", "S", "W"] as const).map((lbl, i) => {
+        const [x, y] = pt(i * 90, R + 9).split(",").map(Number);
+        return (
+          <text key={lbl} x={x} y={y + 3} textAnchor="middle" fontSize="9"
+                fill="currentColor" fillOpacity="0.7">{lbl}</text>
+        );
+      })}
+    </svg>
+  );
+};
+
 function capScenarioStack<T>(items: T[], onRemove?: (item: T) => void): T[] {
   const next = [...items];
   while (next.length > MAX_SCENARIOS_ON_MAP) {
@@ -238,6 +288,8 @@ const LiveWildfire = () => {
   const ensembleIgnLayerRef = useRef<L.Layer | null>(null);   // all-members ignition dots
   const [ensembleIgnCount, setEnsembleIgnCount] = useState(0);
   const [ensembleIgnVisible, setEnsembleIgnVisible] = useState(true);
+  const [windRose, setWindRose] = useState<any | null>(null); // observed-month rose from the ensemble
+  const [windRoseVisible, setWindRoseVisible] = useState(true);
   const [evacLegend, setEvacLegend] = useState<string[]>([]);      // scenario labels with evac layers (drives legend)
   const [evacHidden, setEvacHidden] = useState<{ roads: boolean; areas: boolean }>({ roads: false, areas: false });
   const containmentLayerRef = useRef<L.GeoJSON | null>(null);
@@ -735,13 +787,17 @@ const LiveWildfire = () => {
   };
 
   // Small neutral dots for EVERY ensemble member's ignition (picks get their bold
-  // colored dot from the footprint layer on top). Pass null to clear.
+  // colored dot from the footprint layer on top). Pass null to clear. Also carries
+  // the run's observed-month wind rose for the map card.
   const renderEnsembleIgnitions = async (fc: any | null) => {
     const map = await waitForMap();
     if (ensembleIgnLayerRef.current) {
       map.removeLayer(ensembleIgnLayerRef.current);
       ensembleIgnLayerRef.current = null;
     }
+    setWindRose(fc?.wind_rose
+      ? { rose: fc.wind_rose, window: fc.window, city: fc.city }
+      : null);
     const feats = fc?.features?.length ?? 0;
     setEnsembleIgnCount(feats);
     if (!feats) return;
@@ -1509,6 +1565,21 @@ const LiveWildfire = () => {
       {/* Map */}
       <div className="flex-1 relative">
         <div ref={mapContainerRef} className="absolute inset-0" />
+        {/* Wind rose (observed month behind the city ensemble) */}
+        {windRose?.rose && windRoseVisible && (
+          <div className="absolute bottom-4 right-4 z-[1000] bg-card/95 backdrop-blur border border-border rounded-lg px-3 py-2 shadow-lg text-xs text-foreground">
+            <div className="font-medium mb-0.5">
+              Wind rose — past month{windRose.city ? ` · ${String(windRose.city).replace(/, CA$/, "")}` : ""}
+            </div>
+            <WindRoseSvg rose={windRose.rose} />
+            <div className="text-muted-foreground leading-tight mt-0.5">
+              petal = share of hours · shade = 90th-pct speed
+              {windRose.window?.start && (
+                <div>{windRose.window.start} → {windRose.window.end}</div>
+              )}
+            </div>
+          </div>
+        )}
         {/* Legend */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-card/95 backdrop-blur border border-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1 max-w-[280px]">
           <div className="flex items-center gap-2">
@@ -1618,6 +1689,22 @@ const LiveWildfire = () => {
                     style={{ backgroundColor: "#334155" }}
                   />
                   <span className="text-foreground">All ignitions ({ensembleIgnCount})</span>
+                </label>
+              )}
+              {windRose?.rose && (
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={windRoseVisible}
+                    onChange={(e) => setWindRoseVisible(e.target.checked)}
+                    className="h-3 w-3 cursor-pointer"
+                    style={{ accentColor: "#2563eb" }}
+                  />
+                  <span className="inline-block w-2.5 h-2.5" style={{
+                    background: "conic-gradient(#2563eb 0 12%, transparent 12% 25%, #2563eb 25% 37%, transparent 37% 50%, #2563eb 50% 62%, transparent 62% 75%, #2563eb 75% 87%, transparent 87%)",
+                    borderRadius: "9999px",
+                  }} />
+                  <span className="text-foreground">Wind rose (past month)</span>
                 </label>
               )}
             </>
