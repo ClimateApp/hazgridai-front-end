@@ -468,9 +468,21 @@ const LiveWildfire = () => {
     });
     if (allScenarios.length) restoreScenarioLayers(allScenarios);
 
-    // Restore the all-ignitions dots from the most recent ensemble turn (if any)
+    // Restore the all-ignitions dots from the most recent ensemble turn (if any).
+    // Fallback for conversations recorded before dots existed: fetch them live from
+    // the session (the backend reads the run's saved ensemble table).
     const lastWithIgn = [...loaded].reverse().find((m) => m.ensembleIgnitions);
-    renderEnsembleIgnitions(lastWithIgn?.ensembleIgnitions ?? null);
+    if (lastWithIgn?.ensembleIgnitions) {
+      renderEnsembleIgnitions(lastWithIgn.ensembleIgnitions);
+    } else if (sid) {
+      renderEnsembleIgnitions(null);
+      fetch(`${apiBaseUrl}/session/${sid}/ensemble_ignitions`, { headers: apiHeaders() })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((fc) => { if (fc?.features?.length) renderEnsembleIgnitions(fc); })
+        .catch(() => {});
+    } else {
+      renderEnsembleIgnitions(null);
+    }
 
     // Restore evacuation layers: prefer geojson persisted in messages (works even when
     // the backend that ran them is unreachable), fall back to live session state.
