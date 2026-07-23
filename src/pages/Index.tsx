@@ -159,9 +159,11 @@ const Index = () => {
                         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                           <strong className="font-semibold text-foreground">HazGrid ai</strong> combines geospatial
                           models, regulatory-grade hazard data, and modern AI in an agentic workflow that quantifies
-                          flood, wind, and wildfire risk — from a single address to an entire portfolio. Our AI coastal
-                          flood model matches the accuracy of sophisticated numerical models while running{" "}
-                          <strong className="font-semibold text-foreground">130–180× faster</strong>.
+                          wildfire, flood, and wind risk — from a single address to an entire portfolio. Our
+                          physics-based wildfire engine reproduces real fire behavior — spread, losses, and evacuation
+                          — in <strong className="font-semibold text-foreground">minutes</strong>, and our AI
+                          coastal-flood model matches sophisticated numerical models at{" "}
+                          <strong className="font-semibold text-foreground">130–180× the speed</strong>.
                         </p>
                         <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto mt-4">
                           Our mission is to make catastrophe-grade risk modeling fast, transparent, and accessible to
@@ -173,6 +175,46 @@ const Index = () => {
                       <section className="mb-16">
                         <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Capabilities</h2>
                         <div className="grid md:grid-cols-2 gap-6">
+                          <Card className="p-6">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
+                              <Flame className="w-5 h-5 text-primary-foreground" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Live wildfire simulation</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Draw a fire on the map — or simply name a California city — and interrogate it in plain
+                              language. Our physics-based HazFire engine simulates spread under real or hypothetical
+                              weather with suppression and ember spotting, prices structure losses, and maps evacuation
+                              access. Each 24-hour scenario runs in 2.5–3.5 minutes, and the engine reproduces the
+                              observed footprint of the January 2025 Palisades Fire. NIST puts the annualized economic
+                              burden of wildfire at $71–348 billion (
+                              <a
+                                href="https://www.nist.gov/publications/costs-and-losses-wildfires"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-foreground"
+                              >
+                                ref
+                              </a>
+                              ).
+                            </p>
+                          </Card>
+
+                          <Card className="p-6">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
+                              <Workflow className="w-5 h-5 text-primary-foreground" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">City-scale wildfire outlook</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Name a city and get a probabilistic outlook in minutes: up to 100 scenarios drawn from the
+                              area's past-year wind climate, current-season fuel moisture, and stochastic ignition
+                              patterns — automatically ranked into <span className="font-medium text-foreground">Black
+                              Swan</span>, <span className="font-medium text-foreground">Severe</span>,{" "}
+                              <span className="font-medium text-foreground">Expected</span>, and{" "}
+                              <span className="font-medium text-foreground">Favorable</span> cases, each with modeled
+                              structure losses and evacuation exposure.
+                            </p>
+                          </Card>
+
                           <Card className="p-6">
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
                               <Wind className="w-5 h-5 text-primary-foreground" />
@@ -190,7 +232,7 @@ const Index = () => {
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
                               <Waves className="w-5 h-5 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Coastal flood damage</h3>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Flood losses &amp; portfolio financials</h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                               U.S. flood losses have averaged about $46 billion per year over the past decade (
                               <a
@@ -201,43 +243,10 @@ const Index = () => {
                               >
                                 ref
                               </a>
-                              ). We sample return-period flood levels (2- through 500-year horizons), combine them with
-                              site-specific building characteristics, and estimate depth-driven ground-up and gross
-                              losses — delivered as single-point queries or CSV batch enrichment for full portfolios.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Flame className="w-5 h-5 text-primary-foreground" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire financial risk</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              NIST estimates the annualized economic burden of wildfire at $71 billion to $348 billion (
-                              <a
-                                href="https://www.nist.gov/publications/costs-and-losses-wildfires"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-foreground"
-                              >
-                                ref
-                              </a>
-                              ). We translate annual burn probability, risk to structures, and replacement value into
-                              Expected Annual Loss and multi-horizon ground-up loss estimates (2- through 100-year
-                              windows), for single points or full CSV uploads — with gross losses on our roadmap.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Workflow className="w-5 h-5 text-primary-foreground" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Live wildfire scenario analysis</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Draw a fire on the map and interrogate it in plain language. Our HazFire engine simulates
-                              spread under real or hypothetical weather, prices structure losses, and maps evacuation
-                              access — so wind what-ifs, containment strategies, and building-hardening questions are
-                              answered with simulations in minutes, not days.
+                              ). We sample return-period flood levels (2- through 500-year), combine them with
+                              site-specific building characteristics, and estimate depth-driven losses — then roll
+                              single-address queries up to portfolio-scale average annual loss and exceedance-probability
+                              curves with our fmGrid financial engine.
                             </p>
                           </Card>
                         </div>
@@ -257,6 +266,26 @@ const Index = () => {
                         <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Roadmap</h2>
                         <div className="grid md:grid-cols-2 gap-6">
                           <Card className="p-6">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire AI model</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Complement the physics-based engine with a wildfire AI model — beginning with California,
+                              then expanding toward nationwide U.S. coverage — to deliver high-resolution burn
+                              probability and fire-behavior predictions at a fraction of the compute.
+                            </p>
+                          </Card>
+
+                          <Card className="p-6">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">
+                              Nationwide wildfire event catalog
+                            </h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Grow the city-scale ensemble into a full stochastic wildfire event set, enabling true
+                              average-annual-loss and exceedance-probability curves for structures and portfolios
+                              across the WUI.
+                            </p>
+                          </Card>
+
+                          <Card className="p-6">
                             <h3 className="text-lg font-semibold text-foreground mb-2">
                               Expand coastal flood coverage
                             </h3>
@@ -274,25 +303,6 @@ const Index = () => {
                               and riverine flooding, closing the gap between coastal and inland peril coverage.
                             </p>
                           </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire AI model</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Build a wildfire AI model beginning with California, then expand toward nationwide U.S.
-                              coverage to deliver high-resolution burn probability and fire behavior predictions.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              High-resolution loss modeling
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Integrate a sophisticated loss engine that supports complex insurance policy structures
-                              and estimates losses at a 10-meter grid resolution for granular, portfolio-grade risk
-                              quantification.
-                            </p>
-                          </Card>
                         </div>
                       </section>
 
@@ -303,7 +313,7 @@ const Index = () => {
                           HazGrid ai is designed for organizations that need interactive, faster but precise, more
                           transparent, and location-specific insight into climate and natural hazard risk. Insurers,
                           reinsurers, risk managers, lenders, real estate investors, infrastructure owners, utilities,
-                          emergency planners, and government agencies can use HazGrid ai to evaluate flood and wildfire
+                          emergency planners, and government agencies can use HazGrid ai to evaluate wildfire and flood
                           exposure, estimate potential financial losses, compare risk across properties or portfolios,
                           and support better decisions around underwriting, pricing, mitigation, investment, and
                           resilience planning. By combining high-resolution geospatial data, AI-powered hazard
