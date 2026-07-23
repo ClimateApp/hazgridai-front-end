@@ -391,7 +391,7 @@ const Index = () => {
                           </AccordionItem>
                           <AccordionItem value="accuracy" className="border rounded-lg px-6">
                             <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
-                              AI Coastal Flood Model Accuracy
+                              FloodGrid: AI Coastal Flood Model Accuracy
                             </AccordionTrigger>
                             <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
                               <div className="space-y-8 pt-2">
