@@ -39,6 +39,7 @@ import capecoralFemaAi01 from "@/assets/capecoral-fema-ai-01.png";
 import tampaFemaAi01 from "@/assets/tampa-fema-ai-01.png";
 import panamacityFemaAi01 from "@/assets/panamacity-fema-ai-01.png";
 import aiSpeedComparison from "@/assets/ai-speed-comparison.png";
+import palisadesValidationImg from "@/assets/Palisades_fire.png";
 
 export type InsuranceSettings = { deductible: number; policyLimit: number };
 
@@ -354,7 +355,40 @@ const Index = () => {
                         </p>
                       </section>
                       <section className="mb-16">
-                        <Accordion type="multiple" defaultValue={["accuracy", "speed"]} className="w-full">
+                        <Accordion type="multiple" defaultValue={["fire-accuracy", "accuracy", "speed"]} className="w-full">
+                          <AccordionItem value="fire-accuracy" className="border rounded-lg px-6 mb-4">
+                            <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
+                              FireGrid Model Accuracy
+                            </AccordionTrigger>
+                            <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                              <div className="space-y-6 pt-2">
+                                <div className="space-y-4 max-w-4xl">
+                                  <p className="text-base text-foreground">
+                                    FireGrid is validated against the January 2025{" "}
+                                    <span className="font-semibold">Palisades Fire</span>, which burned roughly
+                                    23,000 acres and damaged 6,900+ structures over six days. Starting from the
+                                    observed Day&nbsp;1 and Day&nbsp;2 fire states, two independent 24-hour
+                                    simulations — with <span className="font-semibold">suppression and ember
+                                    spotting</span> enabled — reproduce the fire's direction, shape, and coastal
+                                    reach: the simulated footprint <span className="font-semibold text-red-600">(red)</span>{" "}
+                                    closely tracks the six-day observed burn extent{" "}
+                                    <span className="font-semibold text-amber-500">(yellow)</span>, including the
+                                    wind-driven eastward run and the spread down into Pacific Palisades.
+                                  </p>
+                                  <p>
+                                    Each 24-hour scenario completes in just{" "}
+                                    <span className="font-semibold text-foreground">2.5–3.5 minutes</span>, making
+                                    it practical to run many what-if scenarios per fire.
+                                  </p>
+                                </div>
+                                <img
+                                  src={palisadesValidationImg}
+                                  alt="FireGrid validation against the January 2025 Palisades Fire: observed six-day extent versus 24-hour simulations with suppression and spotting"
+                                  className="w-full h-auto rounded-md border border-border"
+                                />
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
                           <AccordionItem value="accuracy" className="border rounded-lg px-6">
                             <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
                               AI Coastal Flood Model Accuracy
