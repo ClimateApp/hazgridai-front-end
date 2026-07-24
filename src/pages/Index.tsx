@@ -11,7 +11,7 @@ const napaEnsembleDemo = { url: `${MEDIA_BASE}/demo03_Napa_ensemble_run.mp4` };
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck } from "lucide-react";
+import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -133,6 +133,12 @@ const Index = () => {
                       <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}
                               title="Admin console" aria-label="Admin console">
                         <ShieldCheck className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {!isGuest && (
+                      <Button variant="ghost" size="icon" onClick={() => navigate("/account")}
+                              title="Your account (change password)" aria-label="Your account">
+                        <KeyRound className="w-4 h-4" />
                       </Button>
                     )}
                     {isGuest ? (
