@@ -11,10 +11,13 @@
  *
  * Auth: JWT in localStorage. No self-signup — admins provision accounts.
  */
+// Production default = the Cloud Run service (public, TLS, backed by Neon).
+// Local dev overrides it with VITE_AUTH_API_URL=http://localhost:8050 in .env.local;
+// a per-browser override is also possible via localStorage "auth_api_url".
 const BASE =
   (typeof localStorage !== "undefined" ? localStorage.getItem("auth_api_url") : null) ||
   (import.meta.env.VITE_AUTH_API_URL as string | undefined) ||
-  "http://localhost:8050";
+  "https://hazgrid-auth-695989746299.us-west1.run.app";
 
 const TOKEN_KEY = "hazgrid_token";
 
