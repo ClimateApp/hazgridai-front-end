@@ -1,138 +1,167 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Waves, Mail, Lock, Loader2, User } from "lucide-react";
+import { Lock, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
+import hazgridLogo from "@/assets/hazgrid-logo.svg";
 
-const emailSchema = z.string().email("Please enter a valid email address");
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
-
+/**
+ * Sign-in for HazGrid ai. Accounts are provisioned by an administrator — there is no
+ * public sign-up. Accounts flagged `must_change_password` are forced to set their own
+ * password here before continuing.
+ */
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signOut, changePassword, user, loading, mustChangePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect if already authenticated
+  // Signed in and password is current -> straight to the app.
   useEffect(() => {
-    if (user && !loading) {
-      navigate("/", { replace: true });
+    if (!loading && user && !mustChangePassword) navigate("/", { replace: true });
+  }, [user, loading, mustChangePassword, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!email.trim() || !password) {
+      setError("Enter your email and password.");
+      return;
     }
-  }, [user, loading, navigate]);
-
-  const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
-
-    const emailResult = emailSchema.safeParse(email);
-    if (!emailResult.success) {
-      newErrors.email = emailResult.error.errors[0].message;
+    setSubmitting(true);
+    const { error } = await signIn(email.trim(), password);
+    setSubmitting(false);
+    if (error) {
+      setError(error.message || "Sign-in failed");
+      return;
     }
-
-    const passwordResult = passwordSchema.safeParse(password);
-    if (!passwordResult.success) {
-      newErrors.password = passwordResult.error.errors[0].message;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setPassword("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) return;
-
-    setIsSubmitting(true);
-
-    try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast({
-              title: "Invalid credentials",
-              description: "Please check your email and password and try again.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Sign in failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully signed in.",
-          });
-        }
-      } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          if (error.message.includes("User already registered")) {
-            toast({
-              title: "Account exists",
-              description: "An account with this email already exists. Please sign in instead.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Sign up failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Account created!",
-            description: "You can now use the Flood Level Assistant.",
-          });
-        }
-      }
-    } finally {
-      setIsSubmitting(false);
+    setError("");
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters.");
+      return;
     }
+    if (newPassword !== confirmPassword) {
+      setError("The two passwords don't match.");
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await changePassword(password || "", newPassword);
+    setSubmitting(false);
+    if (error) {
+      setError(error.message || "Could not update password");
+      return;
+    }
+    toast({ title: "Password updated" });
+    navigate("/", { replace: true });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        <Loader2 className="w-6 h-6 animate-spin" />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-primary flex items-center justify-center">
-            <Waves className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <div>
-            <CardTitle className="text-2xl">
-              {isLogin ? "Welcome back" : "Create account"}
-            </CardTitle>
-            <CardDescription className="mt-2">
-              {isLogin
-                ? "Sign in to access the Flood Level Assistant"
-                : "Sign up to start checking flood levels"}
+  // ---- forced password change (first login after an admin provisions the account) ----
+  if (user && mustChangePassword) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-3 w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <CardTitle>Choose a new password</CardTitle>
+            <CardDescription>
+              Your account was set up with a temporary password. Please set your own before
+              continuing.
             </CardDescription>
-          </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current">Temporary password</Label>
+                <Input
+                  id="current"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="the password you were given"
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new">New password</Label>
+                <Input
+                  id="new"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="at least 8 characters"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm">Confirm new password</Label>
+                <Input
+                  id="confirm"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update password"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={async () => {
+                  await signOut();
+                  setPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+              >
+                Sign in as someone else
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ------------------------------- sign in -------------------------------
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <img src={hazgridLogo} alt="HazGrid ai" className="mx-auto h-14 w-auto mb-2" />
+          <CardTitle>Sign in</CardTitle>
+          <CardDescription>Access live wildfire and flood simulations.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -140,21 +169,14 @@ const Auth = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setErrors((prev) => ({ ...prev, email: undefined }));
-                  }}
-                  className="pl-10"
-                  disabled={isSubmitting}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="pl-9"
+                  autoComplete="username"
                 />
               </div>
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
-              )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -162,61 +184,25 @@ const Auth = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setErrors((prev) => ({ ...prev, password: undefined }));
-                  }}
-                  className="pl-10"
-                  disabled={isSubmitting}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pl-9"
+                  autoComplete="current-password"
                 />
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
-              )}
             </div>
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isLogin ? "Signing in..." : "Creating account..."}
-                </>
-              ) : isLogin ? (
-                "Sign in"
-              ) : (
-                "Create account"
-              )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign in"}
             </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate("/?guest=true")}
-            >
-              <User className="w-4 h-4 mr-2" />
+            <Button type="button" variant="outline" className="w-full" onClick={() => navigate("/")}>
               Continue as guest
             </Button>
+            <p className="text-xs text-muted-foreground text-center pt-2">
+              Accounts are issued by HazGrid ai. Contact your administrator for access.
+            </p>
           </form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-              }}
-              className="text-primary hover:underline font-medium"
-              disabled={isSubmitting}
-            >
-              {isLogin ? "Sign up" : "Sign in"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>

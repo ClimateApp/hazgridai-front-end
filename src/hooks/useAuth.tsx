@@ -1,69 +1,77 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { api, tokenStore, type AuthUser } from "@/lib/backend";
 
+/**
+ * Auth against the self-hosted auth-service (Supabase removed).
+ * There is no self-signup: admins provision accounts, and users whose account is
+ * flagged `must_change_password` are forced through a password change on first login.
+ */
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
+  session: { access_token: string } | null; // kept for components reading access_token
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  isAdmin: boolean;
+  mustChangePassword: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  changePassword: (current: string, next: string) => Promise<{ error: Error | null }>;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
-    });
-    return { error };
+  const load = async () => {
+    const u = await api.me();
+    setUser(u);
+    setLoading(false);
   };
 
+  useEffect(() => {
+    load();
+  }, []);
+
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      setUser(await api.login(email, password));
+      return { error: null };
+    } catch (e: any) {
+      return { error: e instanceof Error ? e : new Error(String(e)) };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    api.logout();
+    setUser(null);
   };
 
+  const changePassword = async (current: string, next: string) => {
+    try {
+      setUser(await api.changePassword(current, next));
+      return { error: null };
+    } catch (e: any) {
+      return { error: e instanceof Error ? e : new Error(String(e)) };
+    }
+  };
+
+  const token = tokenStore.get();
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session: user && token ? { access_token: token } : null,
+        loading,
+        isAdmin: user?.role === "admin",
+        mustChangePassword: !!user?.must_change_password,
+        signIn,
+        signOut,
+        changePassword,
+        refresh: load,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

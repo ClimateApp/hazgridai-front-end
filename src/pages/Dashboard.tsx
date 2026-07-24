@@ -1,39 +1,41 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api, type AuthUser } from "@/lib/backend";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, UserPlus, KeyRound, Trash2, ShieldCheck, ArrowLeft } from "lucide-react";
 
-interface UserRow {
-  user_id: string;
-  email: string | null;
-  display_name: string | null;
-  created_at: string;
-  roles: string[];
-  conversation_count: number;
-  time_spent_ms: number;
-}
+type Row = AuthUser & { conversation_count: number; message_count: number };
 
-function formatDuration(ms: number): string {
-  if (!ms || ms < 1000) return "—";
-  const mins = Math.floor(ms / 60000);
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  const rem = mins % 60;
-  if (hrs < 24) return `${hrs}h ${rem}m`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ${hrs % 24}h`;
-}
-
+/** Admin console: provision accounts, reset passwords, manage roles. */
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const { toast } = useToast();
+
+  const [users, setUsers] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState<"admin" | "user">("user");
+
+  const reload = async () => {
+    try {
+      setUsers(await api.listUsers());
+    } catch (e: any) {
+      toast({ title: e.message || "Could not load users", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -41,85 +43,95 @@ export default function Dashboard() {
       navigate("/auth");
       return;
     }
-
-    const load = async () => {
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (!roleData) {
-        setIsAdmin(false);
-        setLoading(false);
-        return;
-      }
-      setIsAdmin(true);
-
-      const [{ data: profiles }, { data: roles }, { data: convs }, { data: msgs }] = await Promise.all([
-        supabase.from("profiles").select("user_id, email, display_name, created_at").order("created_at", { ascending: false }),
-        supabase.from("user_roles").select("user_id, role"),
-        supabase.from("conversations").select("user_id"),
-        supabase.from("messages").select("user_id, conversation_id, created_at"),
-      ]);
-
-      const roleMap = new Map<string, string[]>();
-      (roles || []).forEach((r: any) => {
-        roleMap.set(r.user_id, [...(roleMap.get(r.user_id) || []), r.role]);
-      });
-      const convCount = new Map<string, number>();
-      (convs || []).forEach((c: any) => {
-        convCount.set(c.user_id, (convCount.get(c.user_id) || 0) + 1);
-      });
-
-      // Estimate time spent: per conversation, (max-min message timestamp) + 30s per message for engagement.
-      const convStats = new Map<string, { user_id: string; min: number; max: number; count: number }>();
-      (msgs || []).forEach((m: any) => {
-        const t = new Date(m.created_at).getTime();
-        const s = convStats.get(m.conversation_id);
-        if (!s) convStats.set(m.conversation_id, { user_id: m.user_id, min: t, max: t, count: 1 });
-        else {
-          s.min = Math.min(s.min, t);
-          s.max = Math.max(s.max, t);
-          s.count += 1;
-        }
-      });
-      const timeMap = new Map<string, number>();
-      convStats.forEach((s) => {
-        // Cap any single inactive gap by capping per-conversation span at 2h.
-        const span = Math.min(s.max - s.min, 2 * 60 * 60 * 1000);
-        const engagement = s.count * 30 * 1000;
-        timeMap.set(s.user_id, (timeMap.get(s.user_id) || 0) + span + engagement);
-      });
-
-      setUsers(
-        (profiles || []).map((p: any) => ({
-          ...p,
-          roles: roleMap.get(p.user_id) || [],
-          conversation_count: convCount.get(p.user_id) || 0,
-          time_spent_ms: timeMap.get(p.user_id) || 0,
-        }))
-      );
+    if (!isAdmin) {
       setLoading(false);
-    };
+      return;
+    }
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading, isAdmin]);
 
-    load();
-  }, [user, authLoading, navigate]);
+  const suggestPassword = () => {
+    const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%";
+    const arr = new Uint32Array(14);
+    crypto.getRandomValues(arr);
+    setNewPassword(Array.from(arr, (n) => chars[n % chars.length]).join(""));
+  };
+
+  const createUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail.trim() || newPassword.length < 8) {
+      toast({ title: "Email and a password of 8+ characters are required", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.createUser(newEmail.trim(), newPassword, newRole);
+      toast({
+        title: `Account created for ${newEmail.trim()}`,
+        description: "Share the password with them — they'll be asked to change it at first sign-in.",
+      });
+      setNewEmail("");
+      setNewPassword("");
+      setNewRole("user");
+      await reload();
+    } catch (e: any) {
+      toast({ title: e.message || "Could not create user", variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resetPassword = async (u: Row) => {
+    const pw = window.prompt(`New temporary password for ${u.email} (min 8 chars):`);
+    if (!pw) return;
+    if (pw.length < 8) {
+      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+      return;
+    }
+    try {
+      await api.resetPassword(u.id, pw);
+      toast({ title: `Password reset for ${u.email}`, description: "They must change it at next sign-in." });
+      await reload();
+    } catch (e: any) {
+      toast({ title: e.message || "Reset failed", variant: "destructive" });
+    }
+  };
+
+  const toggleRole = async (u: Row) => {
+    try {
+      await api.setRole(u.id, u.role === "admin" ? "user" : "admin");
+      await reload();
+    } catch (e: any) {
+      toast({ title: e.message || "Could not change role", variant: "destructive" });
+    }
+  };
+
+  const removeUser = async (u: Row) => {
+    if (!window.confirm(`Delete ${u.email}? Their conversations and messages are deleted too.`)) return;
+    try {
+      await api.deleteUser(u.id);
+      toast({ title: `Deleted ${u.email}` });
+      await reload();
+    } catch (e: any) {
+      toast({ title: e.message || "Delete failed", variant: "destructive" });
+    }
+  };
 
   if (authLoading || loading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   }
 
-  if (isAdmin === false) {
+  if (!isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center px-4">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Access denied</CardTitle>
           </CardHeader>
-          <CardContent className="text-muted-foreground">
-            You don't have permission to view this page. Admin access required.
+          <CardContent className="text-muted-foreground space-y-4">
+            <p>You don't have permission to view this page. Admin access required.</p>
+            <Button variant="outline" onClick={() => navigate("/")}>Back to HazGrid ai</Button>
           </CardContent>
         </Card>
       </div>
@@ -128,42 +140,111 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">{users.length} total registered users</p>
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Admin console</h1>
+            <p className="text-sm text-muted-foreground">
+              Signed in as {user?.email} · {users.length} account{users.length === 1 ? "" : "s"}
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => navigate("/")} className="gap-2">
+            <ArrowLeft className="w-4 h-4" /> Back to app
+          </Button>
         </div>
 
         <Card>
-          <CardContent className="p-0">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <UserPlus className="w-4 h-4" /> Create an account
+            </CardTitle>
+            <CardDescription>
+              Set an initial password and share it with the user — they'll be required to choose
+              their own at first sign-in.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={createUser} className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={newEmail} placeholder="person@company.com"
+                       onChange={(e) => setNewEmail(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="pw">Initial password</Label>
+                <div className="flex gap-2">
+                  <Input id="pw" value={newPassword} placeholder="min 8 characters"
+                         onChange={(e) => setNewPassword(e.target.value)} />
+                  <Button type="button" variant="outline" onClick={suggestPassword} title="Generate">
+                    <KeyRound className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="role">Role</Label>
+                <select id="role" value={newRole} onChange={(e) => setNewRole(e.target.value as any)}
+                        className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                </select>
+              </div>
+              <Button type="submit" disabled={busy}>
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Accounts</CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Roles</TableHead>
-                  <TableHead className="text-right">Conversations</TableHead>
-                  <TableHead className="text-right">Time spent</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Chats</TableHead>
+                  <TableHead className="text-right">Messages</TableHead>
+                  <TableHead>Last sign-in</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((u) => (
-                  <TableRow key={u.user_id}>
-                    <TableCell className="font-medium">{u.display_name || "—"}</TableCell>
-                    <TableCell>{u.email}</TableCell>
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">{u.email}</TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {u.roles.map((r) => (
-                          <Badge key={r} variant={r === "admin" ? "default" : "secondary"}>
-                            {r}
-                          </Badge>
-                        ))}
-                      </div>
+                      <Badge variant={u.role === "admin" ? "default" : "secondary"}>{u.role}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{u.conversation_count}</TableCell>
-                    <TableCell className="text-right">{formatDuration(u.time_spent_ms)}</TableCell>
-                    <TableCell>{format(new Date(u.created_at), "MMM d, yyyy")}</TableCell>
+                    <TableCell>
+                      {u.must_change_password ? (
+                        <span className="text-xs text-amber-600">must set password</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">active</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{u.conversation_count}</TableCell>
+                    <TableCell className="text-right tabular-nums">{u.message_count}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {u.last_login_at ? new Date(u.last_login_at).toLocaleString() : "—"}
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button size="sm" variant="ghost" onClick={() => resetPassword(u)} title="Reset password">
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => toggleRole(u)}
+                              title={u.role === "admin" ? "Demote to user" : "Promote to admin"}
+                              disabled={u.id === user?.id}>
+                        <ShieldCheck className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => removeUser(u)} title="Delete"
+                              disabled={u.id === user?.id}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

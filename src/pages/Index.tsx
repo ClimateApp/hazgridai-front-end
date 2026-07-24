@@ -11,7 +11,7 @@ const napaEnsembleDemo = { url: `${MEDIA_BASE}/demo03_Napa_ensemble_run.mp4` };
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay } from "lucide-react";
+import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ import palisadesValidationImg from "@/assets/Palisades_fire.png";
 export type InsuranceSettings = { deductible: number; policyLimit: number };
 
 const Index = () => {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("mission");
   // Local-dev bypass: set VITE_DISABLE_AUTH=true in .env to use all tabs (incl. Live Wildfire)
@@ -128,7 +128,13 @@ const Index = () => {
                         </TabsTrigger>
                       </TabsList>
                    </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    {isAdmin && (
+                      <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}
+                              title="Admin console" aria-label="Admin console">
+                        <ShieldCheck className="w-4 h-4" />
+                      </Button>
+                    )}
                     {isGuest ? (
                       <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="gap-2">
                         <LogOut className="w-4 h-4" />
