@@ -132,7 +132,7 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
   private orderCol: string | null = null;
   private orderAsc = true;
   private limitN: number | null = null;
-  private single = false;
+  private wantSingle = false;
 
   constructor(
     private table: string,
@@ -158,12 +158,13 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
     return this;
   }
   maybeSingle() {
-    this.single = true;
+    this.wantSingle = true;
     return this;
   }
-  // `.single()` behaves the same here (callers only read `.data`)
-  singleRow() {
-    this.single = true;
+  // `.single()` — same behaviour here (callers only read `.data`). Defined as a real
+  // class method; the field above is `wantSingle` so it doesn't shadow this.
+  single() {
+    this.wantSingle = true;
     return this;
   }
 
@@ -180,7 +181,7 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
               conversation_type: payload?.conversation_type || "general",
             }),
           });
-          return { data: this.single ? r : [r], error: null };
+          return { data: this.wantSingle ? r : [r], error: null };
         }
         if (op === "update") {
           const id = filters.id;
@@ -211,7 +212,7 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
         let rows = r.conversations;
         if (filters.id) rows = rows.filter((c) => c.id === filters.id);
         if (this.orderCol === "updated_at" && this.orderAsc) rows = [...rows].reverse();
-        return { data: this.single ? rows[0] ?? null : rows, error: null };
+        return { data: this.wantSingle ? rows[0] ?? null : rows, error: null };
       }
 
       // ------------------- messages -------------------
@@ -231,7 +232,7 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
               }),
             );
           }
-          return { data: this.single ? out[0] : out, error: null };
+          return { data: this.wantSingle ? out[0] : out, error: null };
         }
         if (op === "update") {
           if (filters.id) {
@@ -250,12 +251,12 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
         const cid = filters.conversation_id;
         if (!cid) return { data: [], error: null };
         const r = await request<{ messages: any[] }>(`/conversations/${cid}/messages`);
-        return { data: this.single ? r.messages[0] ?? null : r.messages, error: null };
+        return { data: this.wantSingle ? r.messages[0] ?? null : r.messages, error: null };
       }
 
       throw new Error(`backend shim: unsupported table "${table}"`);
     } catch (e: any) {
-      return { data: this.single ? null : [], error: e instanceof Error ? e : new Error(String(e)) };
+      return { data: this.wantSingle ? null : [], error: e instanceof Error ? e : new Error(String(e)) };
     }
   }
 
@@ -266,11 +267,6 @@ class Builder<T = any> implements PromiseLike<Result<T>> {
     return this.run().then(onfulfilled as any, onrejected);
   }
 }
-
-// `.single()` is a reserved-ish name on the class above; expose it properly here.
-(Builder.prototype as any).single = function () {
-  return (this as any).singleRow();
-};
 
 export const backend = {
   from(table: string) {
