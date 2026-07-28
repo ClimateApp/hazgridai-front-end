@@ -304,38 +304,6 @@ const Index = () => {
                               return periods for insurers and reinsurers pricing and managing wildfire exposure.
                             </p>
                           </Card>
-
-                          <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">City-scale wildfire outlook</h3>
-                            <p className="text-lg text-foreground leading-relaxed">
-                              Name a city and get a probabilistic outlook in minutes: up to 100 scenarios drawn from the
-                              area's past-year wind climate, current-season fuel moisture, and stochastic ignition
-                              patterns — automatically ranked into <span className="font-medium text-foreground">Black
-                              Swan</span>, <span className="font-medium text-foreground">Severe</span>,{" "}
-                              <span className="font-medium text-foreground">Expected</span>, and{" "}
-                              <span className="font-medium text-foreground">Favorable</span> cases, each with modeled
-                              structure losses and evacuation exposure.
-                            </p>
-                          </Card>
-
-                          <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">Flood losses &amp; portfolio financials</h3>
-                            <p className="text-lg text-foreground leading-relaxed">
-                              U.S. flood losses have averaged about $46 billion per year over the past decade (
-                              <a
-                                href="https://www.cbo.gov/publication/60803"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-foreground"
-                              >
-                                ref
-                              </a>
-                              ). We sample return-period flood levels (2- through 500-year), combine them with
-                              site-specific building characteristics, and estimate depth-driven losses — then roll
-                              single-address queries up to portfolio-scale average annual loss and exceedance-probability
-                              curves with our fmGrid financial engine.
-                            </p>
-                          </Card>
                         </div>
                         <p className="text-sm text-muted-foreground text-center mt-6">
                           Every claim above is benchmarked against numerical models and FEMA maps —{" "}
