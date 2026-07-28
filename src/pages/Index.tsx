@@ -17,6 +17,31 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Typewriter, type TypeSeg } from "@/components/Typewriter";
+
+// Mission hero copy, as bold-aware segments for the typewriter effect.
+const MISSION_PARAGRAPHS: TypeSeg[][] = [
+  [
+    { text: "HazGrid AI", bold: true },
+    {
+      text:
+        " combines geospatial models, regulatory-grade hazard data, and modern AI in an agentic workflow that quantifies wildfire and flood risk from a single address to an entire portfolio. Our physics-based wildfire engine reproduces real fire behavior — spread, losses, and evacuation — in ",
+    },
+    { text: "minutes", bold: true },
+    { text: ", and our AI coastal-flood model matches sophisticated numerical models at " },
+    { text: "130–180× the speed", bold: true },
+    { text: "." },
+  ],
+  [
+    { text: "Our fully agentic workflow makes catastrophe-grade risk modeling " },
+    { text: "fast", bold: true },
+    { text: ", " },
+    { text: "easy", bold: true },
+    { text: ", and " },
+    { text: "transparent", bold: true },
+    { text: " to everyone who has to make decisions about natural-hazard risk." },
+  ],
+];
 import hazgridLogo from "@/assets/hazgrid-logo.svg";
 import floridaStationsMap from "@/assets/florida-stations-map.png";
 import station2MaxSurgeScatter from "@/assets/station2-max-surge-scatter.png";
@@ -59,6 +84,12 @@ const Index = () => {
       setActiveTab("mission");
     }
   }, [loading, isGuest, activeTab]);
+
+  // Re-run the hero typewriter each time the Mission tab gains focus.
+  const [missionRun, setMissionRun] = useState(0);
+  useEffect(() => {
+    if (activeTab === "mission") setMissionRun((r) => r + 1);
+  }, [activeTab]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -168,22 +199,15 @@ const Index = () => {
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6">
                           Decision-Ready Hazard Intelligence<br />for Climate and Property Risk
                         </h1>
-                        <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                          <strong className="font-semibold text-foreground">HazGrid AI</strong> combines geospatial
-                          models, regulatory-grade hazard data, and modern AI in an agentic workflow that quantifies
-                          wildfire and flood risk from a single address to an entire portfolio. Our
-                          physics-based wildfire engine reproduces real fire behavior — spread, losses, and evacuation
-                          — in <strong className="font-semibold text-foreground">minutes</strong>, and our AI
-                          coastal-flood model matches sophisticated numerical models at{" "}
-                          <strong className="font-semibold text-foreground">130–180× the speed</strong>.
-                        </p>
-                        <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto mt-4">
-                          Our fully agentic workflow makes catastrophe-grade risk modeling{" "}
-                          <strong className="font-semibold text-foreground">fast</strong>,{" "}
-                          <strong className="font-semibold text-foreground">easy</strong>, and{" "}
-                          <strong className="font-semibold text-foreground">transparent</strong> to everyone who has to
-                          make decisions about natural-hazard risk.
-                        </p>
+                        <Typewriter
+                          startKey={missionRun}
+                          paragraphs={MISSION_PARAGRAPHS}
+                          paraClassName={(i) =>
+                            i === 0
+                              ? "text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto"
+                              : "text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto mt-4"
+                          }
+                        />
                       </section>
 
                       {/* Pillars */}
