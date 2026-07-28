@@ -152,14 +152,14 @@ const Index = () => {
                           >
                             <DropdownMenuItem
                               onClick={() => handleTabChange("live-wildfire")}
-                              className={activeTab === "live-wildfire" ? "font-semibold" : ""}
+                              className={`text-lg ${activeTab === "live-wildfire" ? "font-semibold" : ""}`}
                             >
                               <Flame className="w-3.5 h-3.5" />
                               Event-Based
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleTabChange("wildfire")}
-                              className={activeTab === "wildfire" ? "font-semibold" : ""}
+                              className={`text-lg ${activeTab === "wildfire" ? "font-semibold" : ""}`}
                             >
                               <Flame className="w-3.5 h-3.5" />
                               Stochastic
@@ -185,14 +185,14 @@ const Index = () => {
                           >
                             <DropdownMenuItem
                               onClick={() => handleTabChange("hurricane")}
-                              className={activeTab === "hurricane" ? "font-semibold" : ""}
+                              className={`text-lg ${activeTab === "hurricane" ? "font-semibold" : ""}`}
                             >
                               <Wind className="w-3.5 h-3.5" />
                               Event-Based
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleTabChange("flood")}
-                              className={activeTab === "flood" ? "font-semibold" : ""}
+                              className={`text-lg ${activeTab === "flood" ? "font-semibold" : ""}`}
                             >
                               <Waves className="w-3.5 h-3.5" />
                               Stochastic
