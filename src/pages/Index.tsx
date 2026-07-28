@@ -267,14 +267,16 @@ const Index = () => {
                             <p className="text-lg text-muted-foreground leading-relaxed">
                               Just ask. Our easy-to-use{" "}
                               <span className="font-medium text-foreground">conversational AI agent</span> turns
-                              plain-language requests into full catastrophe analytics — run large stochastic event sets
-                              spanning thousands of simulated years of wildfire and flood, then get exactly the metric you
-                              need: <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
+                              plain-language requests into full catastrophe analytics. The agent runs large stochastic
+                              event sets spanning tens of thousands of simulated years of wildfire and flood, then gives
+                              you exactly the metric you need:{" "}
+                              <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
                               <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
                               or <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
-                              1-in-100, 1-in-250). No modeling expertise required — single-address questions roll all the
-                              way up to portfolio-scale results through our fmGrid financial engine, giving insurers and
-                              reinsurers a fast, transparent view of tail risk.
+                              1-in-100, 1-in-250). The portfolio-scale analyses go through our fmGrid financial engine,
+                              giving insurers and reinsurers a fast, transparent view of tail risk. The agent is also able
+                              to perform data analysis, detect dominant patterns in the data and results, and output a
+                              comprehensive report covering the analysis end-to-end.
                             </p>
                           </Card>
 
