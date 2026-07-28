@@ -265,14 +265,16 @@ const Index = () => {
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
                             <p className="text-lg text-muted-foreground leading-relaxed">
-                              Run large stochastic event sets — thousands of simulated years of wildfire and flood — and
-                              translate them into the metrics carriers actually price on:{" "}
-                              <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
+                              Just ask. Our easy-to-use{" "}
+                              <span className="font-medium text-foreground">conversational AI agent</span> turns
+                              plain-language requests into full catastrophe analytics — run large stochastic event sets
+                              spanning thousands of simulated years of wildfire and flood, then get exactly the metric you
+                              need: <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
                               <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
-                              and <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
-                              1-in-100, 1-in-250). Single-address estimates roll all the way up to portfolio-scale results
-                              with our fmGrid financial engine, giving insurers and reinsurers a fast, transparent view of
-                              tail risk.
+                              or <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
+                              1-in-100, 1-in-250). No modeling expertise required — single-address questions roll all the
+                              way up to portfolio-scale results through our fmGrid financial engine, giving insurers and
+                              reinsurers a fast, transparent view of tail risk.
                             </p>
                           </Card>
 
