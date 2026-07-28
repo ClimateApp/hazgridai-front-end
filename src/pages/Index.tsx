@@ -260,9 +260,6 @@ const Index = () => {
                         <h2 className="text-3xl font-semibold text-foreground mb-10 text-center">Capabilities</h2>
                         <div className="space-y-8 max-w-5xl mx-auto">
                           <Card className="p-8 md:p-12 h-full">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
-                              <ShieldCheck className="w-8 h-8 text-primary-foreground" />
-                            </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
                             <p className="text-lg text-foreground leading-relaxed">
                               Just ask. Our conversational AI agent turns plain-language requests into full catastrophe
@@ -282,9 +279,6 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
-                              <Flame className="w-8 h-8 text-primary-foreground" />
-                            </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Live wildfire simulation</h3>
                             <p className="text-lg text-foreground leading-relaxed">
                               Draw a fire on the map — or simply name a California city — and interrogate it in plain
@@ -306,9 +300,6 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
-                              <Workflow className="w-8 h-8 text-primary-foreground" />
-                            </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">City-scale wildfire outlook</h3>
                             <p className="text-lg text-foreground leading-relaxed">
                               Name a city and get a probabilistic outlook in minutes: up to 100 scenarios drawn from the
@@ -322,9 +313,6 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
-                              <Wind className="w-8 h-8 text-primary-foreground" />
-                            </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Coastal flood AI model</h3>
                             <p className="text-lg text-foreground leading-relaxed">
                               Our AI model simulates hurricane-induced coastal flooding with accuracy comparable to
@@ -335,9 +323,6 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
-                              <Waves className="w-8 h-8 text-primary-foreground" />
-                            </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Flood losses &amp; portfolio financials</h3>
                             <p className="text-lg text-foreground leading-relaxed">
                               U.S. flood losses have averaged about $46 billion per year over the past decade (
