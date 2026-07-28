@@ -345,51 +345,6 @@ const Index = () => {
 
 
 
-                      {/* Roadmap */}
-                      <section className="mb-16 max-w-5xl mx-auto">
-                        <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Roadmap</h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Wildfire AI model</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Complement the physics-based engine with a wildfire AI model — beginning with California,
-                              then expanding toward nationwide U.S. coverage — to deliver high-resolution burn
-                              probability and fire-behavior predictions at a fraction of the compute.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              Nationwide wildfire event catalog
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Grow the city-scale ensemble into a full stochastic wildfire event set, enabling true
-                              average-annual-loss and exceedance-probability curves for structures and portfolios
-                              across the WUI.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
-                              Expand coastal flood coverage
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Extend the AI coastal flood model from Florida to the full U.S. East Coast and Gulf Coast,
-                              bringing event-based surge and inundation simulation to a broader set of coastal
-                              communities.
-                            </p>
-                          </Card>
-
-                          <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Inland flood workflow</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Develop an AI-powered inland flood pipeline that simulates and assesses rainfall-driven
-                              and riverine flooding, closing the gap between coastal and inland peril coverage.
-                            </p>
-                          </Card>
-                        </div>
-                      </section>
-
                       {/* Who can benefit from HazGrid ai */}
                       <section className="max-w-3xl mx-auto text-center pb-8">
                         <h2 className="text-2xl font-semibold text-foreground mb-4">Who can benefit from HazGrid ai</h2>
