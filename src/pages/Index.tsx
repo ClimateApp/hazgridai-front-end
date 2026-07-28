@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { InsuranceProductMock } from "@/components/CapabilityVisuals";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -260,22 +261,29 @@ const Index = () => {
                         <h2 className="text-3xl font-semibold text-foreground mb-10 text-center">Capabilities</h2>
                         <div className="space-y-8 max-w-5xl mx-auto">
                           <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
-                            <p className="text-lg text-foreground leading-relaxed">
-                              Just ask. Our conversational AI agent turns plain-language requests into full catastrophe
-                              analytics. The agent runs large stochastic event sets spanning tens of thousands of
-                              simulated years of wildfire and flood, then returns the metrics you need:{" "}
-                              <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
-                              <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
-                              and <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
-                              1-in-100, 1-in-250). Portfolio-scale analyses run through our{" "}
-                              <span className="font-medium text-foreground">fmGrid financial engine</span>, giving
-                              insurers and reinsurers a fast, transparent view of tail risk. The agent also analyzes
-                              results to <span className="font-medium text-foreground">identify loss drivers</span> and{" "}
-                              <span className="font-medium text-foreground">concentration hotspots</span>, and outputs a{" "}
-                              <span className="font-medium text-foreground">comprehensive report</span> covering the
-                              analysis end-to-end.
-                            </p>
+                            <div className="flex flex-col md:flex-row gap-8 md:items-center">
+                              <div className="md:w-3/5">
+                                <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
+                                <p className="text-lg text-foreground leading-relaxed">
+                                  Just ask. Our conversational AI agent turns plain-language requests into full catastrophe
+                                  analytics. The agent runs large stochastic event sets spanning tens of thousands of
+                                  simulated years of wildfire and flood, then returns the metrics you need:{" "}
+                                  <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
+                                  <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
+                                  and <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
+                                  1-in-100, 1-in-250). Portfolio-scale analyses run through our{" "}
+                                  <span className="font-medium text-foreground">fmGrid financial engine</span>, giving
+                                  insurers and reinsurers a fast, transparent view of tail risk. The agent also analyzes
+                                  results to <span className="font-medium text-foreground">identify loss drivers</span> and{" "}
+                                  <span className="font-medium text-foreground">concentration hotspots</span>, and outputs a{" "}
+                                  <span className="font-medium text-foreground">comprehensive report</span> covering the
+                                  analysis end-to-end.
+                                </p>
+                              </div>
+                              <div className="md:w-2/5 flex-shrink-0">
+                                <InsuranceProductMock className="w-full" />
+                              </div>
+                            </div>
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
