@@ -8,7 +8,7 @@ const fireStochasticDemo = { url: `${MEDIA_BASE}/fire_stochastic_demo.mp4` };
 const palisadesFireDemo = { url: `${MEDIA_BASE}/demo01_Palisades_fire_single_scenario.mp4` };
 const napaSingleDemo = { url: `${MEDIA_BASE}/demo02_Napa_fire_single_scenario.mp4` };
 const napaEnsembleDemo = { url: `${MEDIA_BASE}/demo03_Napa_ensemble_run.mp4` };
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
@@ -78,9 +78,24 @@ const Index = () => {
   const fireActive = activeTab === "live-wildfire" || activeTab === "wildfire";
   const floodActive = activeTab === "hurricane" || activeTab === "flood";
   const dropdownTriggerClass = (active: boolean) =>
-    `inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-lg font-medium ring-offset-background transition-all hover:scale-110 hover:font-bold focus-visible:outline-none data-[state=open]:font-bold ${
+    `inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-2xl font-medium ring-offset-background transition-all hover:scale-110 hover:font-bold focus-visible:outline-none data-[state=open]:font-bold ${
       active ? "bg-background text-foreground shadow-sm font-bold" : ""
     }`;
+
+  // Hover-to-open for the FireGrid / FloodGrid menus. A short close delay bridges
+  // the gap between trigger and menu so moving the pointer down doesn't dismiss it.
+  const [fireOpen, setFireOpen] = useState(false);
+  const [floodOpen, setFloodOpen] = useState(false);
+  const fireTimer = useRef<number>();
+  const floodTimer = useRef<number>();
+  const openMenu = (set: (v: boolean) => void, timer: React.MutableRefObject<number | undefined>) => {
+    window.clearTimeout(timer.current);
+    set(true);
+  };
+  const closeMenuSoon = (set: (v: boolean) => void, timer: React.MutableRefObject<number | undefined>) => {
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => set(false), 150);
+  };
 
   if (loading) {
     return (
@@ -99,33 +114,42 @@ const Index = () => {
             {/* The chat components render their own sidebar; we mount only the active one */}
             <div className={`flex flex-1 w-full flex-col ${["mission", "validation", "demos"].includes(activeTab) ? "" : "md:pl-[16rem]"}`}>
               <header className="flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
-                <div className="relative px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                <div className="relative px-4 py-3 flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-shrink-0">
                     {!["mission", "validation", "demos"].includes(activeTab) && <SidebarTrigger className="-ml-1" />}
                     {["mission", "validation", "demos"].includes(activeTab) && (
                       <img src={hazgridLogo} alt="HazGrid ai" className="h-16 w-auto -my-2" />
                     )}
                   </div>
-                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                   <div className="flex-1 flex justify-center min-w-0 overflow-x-auto">
                      <TabsList className="h-12">
-                       <TabsTrigger value="mission" className="gap-1.5 px-3 text-lg hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                       <TabsTrigger value="mission" className="gap-1.5 px-3 text-2xl hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          Mission
                        </TabsTrigger>
-                       <TabsTrigger value="validation" className="gap-1.5 px-3 text-lg hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                       <TabsTrigger value="validation" className="gap-1.5 px-3 text-2xl hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          <Target className="w-3.5 h-3.5" />
                          Validation and Efficiency
                        </TabsTrigger>
-                       <TabsTrigger value="demos" className="gap-1.5 px-3 text-lg hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                       <TabsTrigger value="demos" className="gap-1.5 px-3 text-2xl hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          <MonitorPlay className="w-3.5 h-3.5" />
                          Demos
                        </TabsTrigger>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className={dropdownTriggerClass(fireActive)}>
+                        <DropdownMenu open={fireOpen} onOpenChange={setFireOpen} modal={false}>
+                          <DropdownMenuTrigger
+                            className={dropdownTriggerClass(fireActive)}
+                            onMouseEnter={() => openMenu(setFireOpen, fireTimer)}
+                            onMouseLeave={() => closeMenuSoon(setFireOpen, fireTimer)}
+                          >
                             <Flame className="w-3.5 h-3.5" />
                             FireGrid
                             <ChevronDown className="w-5 h-5 opacity-70" />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center">
+                          <DropdownMenuContent
+                            align="center"
+                            onCloseAutoFocus={(e) => e.preventDefault()}
+                            onMouseEnter={() => openMenu(setFireOpen, fireTimer)}
+                            onMouseLeave={() => closeMenuSoon(setFireOpen, fireTimer)}
+                          >
                             <DropdownMenuItem
                               onClick={() => handleTabChange("live-wildfire")}
                               className={activeTab === "live-wildfire" ? "font-semibold" : ""}
@@ -143,13 +167,22 @@ const Index = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className={dropdownTriggerClass(floodActive)}>
+                        <DropdownMenu open={floodOpen} onOpenChange={setFloodOpen} modal={false}>
+                          <DropdownMenuTrigger
+                            className={dropdownTriggerClass(floodActive)}
+                            onMouseEnter={() => openMenu(setFloodOpen, floodTimer)}
+                            onMouseLeave={() => closeMenuSoon(setFloodOpen, floodTimer)}
+                          >
                             <Waves className="w-3.5 h-3.5" />
                             FloodGrid
                             <ChevronDown className="w-5 h-5 opacity-70" />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center">
+                          <DropdownMenuContent
+                            align="center"
+                            onCloseAutoFocus={(e) => e.preventDefault()}
+                            onMouseEnter={() => openMenu(setFloodOpen, floodTimer)}
+                            onMouseLeave={() => closeMenuSoon(setFloodOpen, floodTimer)}
+                          >
                             <DropdownMenuItem
                               onClick={() => handleTabChange("hurricane")}
                               className={activeTab === "hurricane" ? "font-semibold" : ""}
@@ -168,7 +201,7 @@ const Index = () => {
                         </DropdownMenu>
                       </TabsList>
                    </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     {isAdmin && (
                       <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}
                               title="Admin console" aria-label="Admin console">
