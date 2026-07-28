@@ -99,30 +99,30 @@ const Index = () => {
                   </div>
                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <TabsList className="h-12">
-                       <TabsTrigger value="mission" className="gap-1.5 px-3 text-base">
+                       <TabsTrigger value="mission" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          Mission
                        </TabsTrigger>
-                       <TabsTrigger value="validation" className="gap-1.5 px-3 text-base">
+                       <TabsTrigger value="validation" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          <Target className="w-3.5 h-3.5" />
                          Validation and Efficiency
                        </TabsTrigger>
-                       <TabsTrigger value="demos" className="gap-1.5 px-3 text-base">
+                       <TabsTrigger value="demos" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          <MonitorPlay className="w-3.5 h-3.5" />
                          Demos
                        </TabsTrigger>
-                         <TabsTrigger value="live-wildfire" className="gap-1.5 px-3 text-base">
+                         <TabsTrigger value="live-wildfire" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                            <Flame className="w-3.5 h-3.5" />
                            FireGrid: Event-Based
                          </TabsTrigger>
-                          <TabsTrigger value="wildfire" className="gap-1.5 px-3 text-base">
+                          <TabsTrigger value="wildfire" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                             <Flame className="w-3.5 h-3.5" />
                             FireGrid: Stochastic
                           </TabsTrigger>
-                        <TabsTrigger value="hurricane" className="gap-1.5 px-3 text-base">
+                        <TabsTrigger value="hurricane" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                           <Wind className="w-3.5 h-3.5" />
                           FloodGrid: Event-Based
                         </TabsTrigger>
-                        <TabsTrigger value="flood" className="gap-1.5 px-3 text-base">
+                        <TabsTrigger value="flood" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                           <Waves className="w-3.5 h-3.5" />
                           FloodGrid: Stochastic
                         </TabsTrigger>
