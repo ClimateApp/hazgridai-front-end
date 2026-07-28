@@ -166,7 +166,7 @@ const Index = () => {
                       {/* Hero */}
                       <section className="text-center mb-16">
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6">
-                          Decision-ready hazard intelligence for climate and property risk
+                          Decision-Ready Hazard Intelligence<br />for Climate and Property Risk
                         </h1>
                         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                           <strong className="font-semibold text-foreground">HazGrid ai</strong> combines geospatial
