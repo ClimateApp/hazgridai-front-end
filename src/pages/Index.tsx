@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AutoCarousel } from "@/components/AutoCarousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -259,7 +258,7 @@ const Index = () => {
                       {/* Pillars */}
                       <section className="mb-16">
                         <h2 className="text-3xl font-semibold text-foreground mb-10 text-center">Capabilities</h2>
-                        <AutoCarousel intervalMs={5000} className="max-w-4xl mx-auto">
+                        <div className="space-y-8 max-w-5xl mx-auto">
                           <Card className="p-8 md:p-12 h-full">
                             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
                               <Flame className="w-8 h-8 text-primary-foreground" />
@@ -334,7 +333,7 @@ const Index = () => {
                               curves with our fmGrid financial engine.
                             </p>
                           </Card>
-                        </AutoCarousel>
+                        </div>
                         <p className="text-sm text-muted-foreground text-center mt-6">
                           Every claim above is benchmarked against numerical models and FEMA maps —{" "}
                           <button onClick={() => setActiveTab("validation")} className="underline hover:text-foreground">
