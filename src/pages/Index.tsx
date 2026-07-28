@@ -294,14 +294,14 @@ const Index = () => {
                             <p className="text-lg text-foreground leading-relaxed">
                               Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
                               language. Our physics-based FireGrid engine simulates spread under real or hypothetical
-                              weather with any scenario you choose — suppression, ember spotting, structure-to-structure
+                              weather with any scenario you choose including suppression, ember spotting, structure-to-structure
                               spread, and more. It then estimates structure losses and maps evacuation access. Each
                               24-hour scenario runs in 2.5–3.5 minutes wall-clock time.
                             </p>
                             <p className="text-lg text-foreground leading-relaxed mt-4">
                               The same engine powers stochastic wildfire catalogs: thousands of simulated fire seasons
-                              that produce portfolio-level loss distributions — AAL, EP curves, and PML at key return
-                              periods — for insurers and reinsurers pricing and managing wildfire exposure.
+                              that produce portfolio-level loss distributions including AAL, EP curves, and PML at key
+                              return periods for insurers and reinsurers pricing and managing wildfire exposure.
                             </p>
                           </Card>
 
