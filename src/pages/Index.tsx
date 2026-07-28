@@ -154,14 +154,12 @@ const Index = () => {
                               onClick={() => handleTabChange("live-wildfire")}
                               className={`text-lg ${activeTab === "live-wildfire" ? "font-semibold" : ""}`}
                             >
-                              <Flame className="w-3.5 h-3.5" />
                               Event-Based
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleTabChange("wildfire")}
                               className={`text-lg ${activeTab === "wildfire" ? "font-semibold" : ""}`}
                             >
-                              <Flame className="w-3.5 h-3.5" />
                               Stochastic
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -187,14 +185,12 @@ const Index = () => {
                               onClick={() => handleTabChange("hurricane")}
                               className={`text-lg ${activeTab === "hurricane" ? "font-semibold" : ""}`}
                             >
-                              <Wind className="w-3.5 h-3.5" />
                               Event-Based
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleTabChange("flood")}
                               className={`text-lg ${activeTab === "flood" ? "font-semibold" : ""}`}
                             >
-                              <Waves className="w-3.5 h-3.5" />
                               Stochastic
                             </DropdownMenuItem>
                           </DropdownMenuContent>
