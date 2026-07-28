@@ -290,7 +290,7 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">Live wildfire simulation</h3>
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">FireGrid: our fire model</h3>
                             <p className="text-lg text-foreground leading-relaxed">
                               Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
                               language. Our physics-based FireGrid engine simulates spread under real or hypothetical
