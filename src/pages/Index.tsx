@@ -265,18 +265,17 @@ const Index = () => {
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
                             <p className="text-lg text-muted-foreground leading-relaxed">
-                              Just ask. Our easy-to-use{" "}
-                              <span className="font-medium text-foreground">conversational AI agent</span> turns
-                              plain-language requests into full catastrophe analytics. The agent runs large stochastic
-                              event sets spanning tens of thousands of simulated years of wildfire and flood, then gives
-                              you exactly the metric you need:{" "}
-                              <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
-                              <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
-                              or <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
-                              1-in-100, 1-in-250). The portfolio-scale analyses go through our fmGrid financial engine,
-                              giving insurers and reinsurers a fast, transparent view of tail risk. The agent is also able
-                              to perform data analysis, detect dominant patterns in the data and results, and output a
-                              comprehensive report covering the analysis end-to-end.
+                              Just ask. Our conversational AI agent turns plain-language requests into full catastrophe
+                              analytics. The agent runs large stochastic event sets spanning tens of thousands of
+                              simulated years of wildfire and flood, then returns the metrics you need: average annual
+                              loss (AAL), OEP/AEP exceedance-probability curves, and PML at key return periods (e.g.
+                              1-in-100, 1-in-250). Portfolio-scale analyses run through our{" "}
+                              <span className="font-medium text-foreground">fmGrid financial engine</span>, giving
+                              insurers and reinsurers a fast, transparent view of tail risk. The agent also analyzes
+                              results to <span className="font-medium text-foreground">identify loss drivers</span> and{" "}
+                              <span className="font-medium text-foreground">concentration hotspots</span>, and outputs a{" "}
+                              <span className="font-medium text-foreground">comprehensive report</span> covering the
+                              analysis end-to-end.
                             </p>
                           </Card>
 
