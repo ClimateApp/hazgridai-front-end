@@ -11,7 +11,8 @@ const napaEnsembleDemo = { url: `${MEDIA_BASE}/demo03_Napa_ensemble_run.mp4` };
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound } from "lucide-react";
+import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,14 @@ const Index = () => {
     setActiveTab(value);
   };
 
+  // A dropdown "tab" is active when either of its child views is active.
+  const fireActive = activeTab === "live-wildfire" || activeTab === "wildfire";
+  const floodActive = activeTab === "hurricane" || activeTab === "flood";
+  const dropdownTriggerClass = (active: boolean) =>
+    `inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm px-3 py-1.5 text-lg font-medium ring-offset-background transition-all hover:scale-110 hover:font-bold focus-visible:outline-none data-[state=open]:font-bold ${
+      active ? "bg-background text-foreground shadow-sm font-bold" : ""
+    }`;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -99,33 +108,64 @@ const Index = () => {
                   </div>
                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <TabsList className="h-12">
-                       <TabsTrigger value="mission" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                       <TabsTrigger value="mission" className="gap-1.5 px-3 text-lg hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          Mission
                        </TabsTrigger>
-                       <TabsTrigger value="validation" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                       <TabsTrigger value="validation" className="gap-1.5 px-3 text-lg hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          <Target className="w-3.5 h-3.5" />
                          Validation and Efficiency
                        </TabsTrigger>
-                       <TabsTrigger value="demos" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                       <TabsTrigger value="demos" className="gap-1.5 px-3 text-lg hover:scale-110 hover:font-bold data-[state=active]:font-bold">
                          <MonitorPlay className="w-3.5 h-3.5" />
                          Demos
                        </TabsTrigger>
-                         <TabsTrigger value="live-wildfire" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
-                           <Flame className="w-3.5 h-3.5" />
-                           FireGrid: Event-Based
-                         </TabsTrigger>
-                          <TabsTrigger value="wildfire" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className={dropdownTriggerClass(fireActive)}>
                             <Flame className="w-3.5 h-3.5" />
-                            FireGrid: Stochastic
-                          </TabsTrigger>
-                        <TabsTrigger value="hurricane" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
-                          <Wind className="w-3.5 h-3.5" />
-                          FloodGrid: Event-Based
-                        </TabsTrigger>
-                        <TabsTrigger value="flood" className="gap-1.5 px-3 text-base hover:scale-110 hover:font-bold data-[state=active]:font-bold">
-                          <Waves className="w-3.5 h-3.5" />
-                          FloodGrid: Stochastic
-                        </TabsTrigger>
+                            FireGrid
+                            <ChevronDown className="w-5 h-5 opacity-70" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center">
+                            <DropdownMenuItem
+                              onClick={() => handleTabChange("live-wildfire")}
+                              className={activeTab === "live-wildfire" ? "font-semibold" : ""}
+                            >
+                              <Flame className="w-3.5 h-3.5" />
+                              Event-Based
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleTabChange("wildfire")}
+                              className={activeTab === "wildfire" ? "font-semibold" : ""}
+                            >
+                              <Flame className="w-3.5 h-3.5" />
+                              Stochastic
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className={dropdownTriggerClass(floodActive)}>
+                            <Waves className="w-3.5 h-3.5" />
+                            FloodGrid
+                            <ChevronDown className="w-5 h-5 opacity-70" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center">
+                            <DropdownMenuItem
+                              onClick={() => handleTabChange("hurricane")}
+                              className={activeTab === "hurricane" ? "font-semibold" : ""}
+                            >
+                              <Wind className="w-3.5 h-3.5" />
+                              Event-Based
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleTabChange("flood")}
+                              className={activeTab === "flood" ? "font-semibold" : ""}
+                            >
+                              <Waves className="w-3.5 h-3.5" />
+                              Stochastic
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TabsList>
                    </div>
                   <div className="flex items-center gap-1">
