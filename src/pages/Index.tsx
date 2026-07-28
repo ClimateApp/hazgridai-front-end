@@ -261,6 +261,23 @@ const Index = () => {
                         <div className="space-y-8 max-w-5xl mx-auto">
                           <Card className="p-8 md:p-12 h-full">
                             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
+                              <ShieldCheck className="w-8 h-8 text-primary-foreground" />
+                            </div>
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
+                            <p className="text-lg text-muted-foreground leading-relaxed">
+                              Run large stochastic event sets — thousands of simulated years of wildfire and flood — and
+                              translate them into the metrics carriers actually price on:{" "}
+                              <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
+                              <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
+                              and <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
+                              1-in-100, 1-in-250). Single-address estimates roll all the way up to portfolio-scale results
+                              with our fmGrid financial engine, giving insurers and reinsurers a fast, transparent view of
+                              tail risk.
+                            </p>
+                          </Card>
+
+                          <Card className="p-8 md:p-12 h-full">
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
                               <Flame className="w-8 h-8 text-primary-foreground" />
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Live wildfire simulation</h3>
