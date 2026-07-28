@@ -34,37 +34,40 @@ export function AutoCarousel({ children, intervalMs = 5000, className }: Props) 
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative overflow-hidden rounded-xl">
-        <div
-          className="flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
-        >
-          {slides.map((slide, i) => (
-            <div key={i} className="min-w-full">
-              {slide}
-            </div>
-          ))}
+      <div className="flex items-center gap-2 sm:gap-4">
+        {n > 1 && (
+          <button
+            type="button"
+            aria-label="Previous"
+            onClick={() => go(index - 1)}
+            className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-background text-foreground shadow-sm ring-1 ring-border transition-colors hover:bg-muted"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        <div className="relative overflow-hidden rounded-xl flex-1 min-w-0">
+          <div
+            className="flex transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
+            {slides.map((slide, i) => (
+              <div key={i} className="min-w-full">
+                {slide}
+              </div>
+            ))}
+          </div>
         </div>
 
         {n > 1 && (
-          <>
-            <button
-              type="button"
-              aria-label="Previous"
-              onClick={() => go(index - 1)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-background/80 text-foreground shadow-sm ring-1 ring-border backdrop-blur transition-colors hover:bg-background"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              type="button"
-              aria-label="Next"
-              onClick={() => go(index + 1)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-background/80 text-foreground shadow-sm ring-1 ring-border backdrop-blur transition-colors hover:bg-background"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </>
+          <button
+            type="button"
+            aria-label="Next"
+            onClick={() => go(index + 1)}
+            className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-background text-foreground shadow-sm ring-1 ring-border transition-colors hover:bg-muted"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         )}
       </div>
 
