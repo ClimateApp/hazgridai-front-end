@@ -279,12 +279,13 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">Coastal flood AI model</h3>
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">FloodGrid: our flood model</h3>
                             <p className="text-lg text-foreground leading-relaxed">
-                              Our AI model simulates hurricane-induced coastal flooding with accuracy comparable to
-                              sophisticated numerical models — at 130–180× the speed. A Florida-wide hurricane runs in
-                              seconds, and a full 10,000-year stochastic catalog completes in hours instead of weeks,
-                              turning event-based exposure analysis into an interactive workflow.
+                              FloodGrid simulates hurricane-induced coastal flooding with accuracy comparable to
+                              sophisticated numerical models, at 135–180× the speed on the same hardware. A Florida-wide
+                              domain runs in 17 seconds — versus ~45 minutes for a conventional numerical solver. A full
+                              10,000-year stochastic catalog completes in hours instead of months. Fast enough to run
+                              portfolio-scale flood catalogs on demand, not as a months-long batch job.
                             </p>
                           </Card>
 
