@@ -264,11 +264,13 @@ const Index = () => {
                               <ShieldCheck className="w-8 h-8 text-primary-foreground" />
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
-                            <p className="text-lg text-muted-foreground leading-relaxed">
+                            <p className="text-lg text-foreground leading-relaxed">
                               Just ask. Our conversational AI agent turns plain-language requests into full catastrophe
                               analytics. The agent runs large stochastic event sets spanning tens of thousands of
-                              simulated years of wildfire and flood, then returns the metrics you need: average annual
-                              loss (AAL), OEP/AEP exceedance-probability curves, and PML at key return periods (e.g.
+                              simulated years of wildfire and flood, then returns the metrics you need:{" "}
+                              <span className="font-medium text-foreground">average annual loss (AAL)</span>,{" "}
+                              <span className="font-medium text-foreground">OEP/AEP exceedance-probability curves</span>,
+                              and <span className="font-medium text-foreground">PML at key return periods</span> (e.g.
                               1-in-100, 1-in-250). Portfolio-scale analyses run through our{" "}
                               <span className="font-medium text-foreground">fmGrid financial engine</span>, giving
                               insurers and reinsurers a fast, transparent view of tail risk. The agent also analyzes
@@ -284,7 +286,7 @@ const Index = () => {
                               <Flame className="w-8 h-8 text-primary-foreground" />
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Live wildfire simulation</h3>
-                            <p className="text-lg text-muted-foreground leading-relaxed">
+                            <p className="text-lg text-foreground leading-relaxed">
                               Draw a fire on the map — or simply name a California city — and interrogate it in plain
                               language. Our physics-based HazFire engine simulates spread under real or hypothetical
                               weather with suppression and ember spotting, prices structure losses, and maps evacuation
@@ -308,7 +310,7 @@ const Index = () => {
                               <Workflow className="w-8 h-8 text-primary-foreground" />
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">City-scale wildfire outlook</h3>
-                            <p className="text-lg text-muted-foreground leading-relaxed">
+                            <p className="text-lg text-foreground leading-relaxed">
                               Name a city and get a probabilistic outlook in minutes: up to 100 scenarios drawn from the
                               area's past-year wind climate, current-season fuel moisture, and stochastic ignition
                               patterns — automatically ranked into <span className="font-medium text-foreground">Black
@@ -324,7 +326,7 @@ const Index = () => {
                               <Wind className="w-8 h-8 text-primary-foreground" />
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Coastal flood AI model</h3>
-                            <p className="text-lg text-muted-foreground leading-relaxed">
+                            <p className="text-lg text-foreground leading-relaxed">
                               Our AI model simulates hurricane-induced coastal flooding with accuracy comparable to
                               sophisticated numerical models — at 130–180× the speed. A Florida-wide hurricane runs in
                               seconds, and a full 10,000-year stochastic catalog completes in hours instead of weeks,
@@ -337,7 +339,7 @@ const Index = () => {
                               <Waves className="w-8 h-8 text-primary-foreground" />
                             </div>
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Flood losses &amp; portfolio financials</h3>
-                            <p className="text-lg text-muted-foreground leading-relaxed">
+                            <p className="text-lg text-foreground leading-relaxed">
                               U.S. flood losses have averaged about $46 billion per year over the past decade (
                               <a
                                 href="https://www.cbo.gov/publication/60803"
