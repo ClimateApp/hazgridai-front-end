@@ -178,8 +178,11 @@ const Index = () => {
                           <strong className="font-semibold text-foreground">130–180× the speed</strong>.
                         </p>
                         <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto mt-4">
-                          Our fully agentic workflow makes catastrophe-grade risk modeling fast, easy, transparent, and
-                          accessible to everyone who has to make decisions about natural-hazard risk.
+                          Our fully agentic workflow makes catastrophe-grade risk modeling{" "}
+                          <strong className="font-semibold text-foreground">fast</strong>,{" "}
+                          <strong className="font-semibold text-foreground">easy</strong>, and{" "}
+                          <strong className="font-semibold text-foreground">transparent</strong> to everyone who has to
+                          make decisions about natural-hazard risk.
                         </p>
                       </section>
 
