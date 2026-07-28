@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AutoCarousel } from "@/components/AutoCarousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -257,14 +258,14 @@ const Index = () => {
 
                       {/* Pillars */}
                       <section className="mb-16">
-                        <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">Capabilities</h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <Card className="p-6">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Flame className="w-5 h-5 text-primary-foreground" />
+                        <h2 className="text-3xl font-semibold text-foreground mb-10 text-center">Capabilities</h2>
+                        <AutoCarousel intervalMs={5000} className="max-w-4xl mx-auto">
+                          <Card className="p-8 md:p-12 h-full">
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
+                              <Flame className="w-8 h-8 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Live wildfire simulation</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">Live wildfire simulation</h3>
+                            <p className="text-lg text-muted-foreground leading-relaxed">
                               Draw a fire on the map — or simply name a California city — and interrogate it in plain
                               language. Our physics-based HazFire engine simulates spread under real or hypothetical
                               weather with suppression and ember spotting, prices structure losses, and maps evacuation
@@ -283,12 +284,12 @@ const Index = () => {
                             </p>
                           </Card>
 
-                          <Card className="p-6">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Workflow className="w-5 h-5 text-primary-foreground" />
+                          <Card className="p-8 md:p-12 h-full">
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
+                              <Workflow className="w-8 h-8 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">City-scale wildfire outlook</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">City-scale wildfire outlook</h3>
+                            <p className="text-lg text-muted-foreground leading-relaxed">
                               Name a city and get a probabilistic outlook in minutes: up to 100 scenarios drawn from the
                               area's past-year wind climate, current-season fuel moisture, and stochastic ignition
                               patterns — automatically ranked into <span className="font-medium text-foreground">Black
@@ -299,12 +300,12 @@ const Index = () => {
                             </p>
                           </Card>
 
-                          <Card className="p-6">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Wind className="w-5 h-5 text-primary-foreground" />
+                          <Card className="p-8 md:p-12 h-full">
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
+                              <Wind className="w-8 h-8 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Coastal flood AI model</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">Coastal flood AI model</h3>
+                            <p className="text-lg text-muted-foreground leading-relaxed">
                               Our AI model simulates hurricane-induced coastal flooding with accuracy comparable to
                               sophisticated numerical models — at 130–180× the speed. A Florida-wide hurricane runs in
                               seconds, and a full 10,000-year stochastic catalog completes in hours instead of weeks,
@@ -312,12 +313,12 @@ const Index = () => {
                             </p>
                           </Card>
 
-                          <Card className="p-6">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4">
-                              <Waves className="w-5 h-5 text-primary-foreground" />
+                          <Card className="p-8 md:p-12 h-full">
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-6">
+                              <Waves className="w-8 h-8 text-primary-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Flood losses &amp; portfolio financials</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                            <h3 className="text-2xl font-semibold text-foreground mb-3">Flood losses &amp; portfolio financials</h3>
+                            <p className="text-lg text-muted-foreground leading-relaxed">
                               U.S. flood losses have averaged about $46 billion per year over the past decade (
                               <a
                                 href="https://www.cbo.gov/publication/60803"
@@ -333,7 +334,7 @@ const Index = () => {
                               curves with our fmGrid financial engine.
                             </p>
                           </Card>
-                        </div>
+                        </AutoCarousel>
                         <p className="text-sm text-muted-foreground text-center mt-6">
                           Every claim above is benchmarked against numerical models and FEMA maps —{" "}
                           <button onClick={() => setActiveTab("validation")} className="underline hover:text-foreground">
