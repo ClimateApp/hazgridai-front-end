@@ -164,11 +164,11 @@ const Index = () => {
                   <div className="flex-1 overflow-auto">
                     <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
                       {/* Hero */}
-                      <section className="text-center mb-16">
+                      <section className="text-center pb-16 mb-16 border-b border-border">
                         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6">
                           Decision-Ready Hazard Intelligence<br />for Climate and Property Risk
                         </h1>
-                        <p className="text-xl text-foreground leading-relaxed max-w-3xl mx-auto">
+                        <p className="text-xl text-foreground leading-relaxed max-w-4xl mx-auto">
                           <strong className="font-semibold text-foreground">HazGrid AI</strong> combines geospatial
                           models, hazard data, and modern AI in an agentic workflow that quantifies
                           wildfire and flood risk from a single address to an entire portfolio. Our
@@ -177,7 +177,7 @@ const Index = () => {
                           coastal-flood model matches sophisticated numerical models at{" "}
                           <strong className="font-semibold text-foreground">135–180× the speed</strong>.
                         </p>
-                        <p className="text-xl text-foreground leading-relaxed max-w-2xl mx-auto mt-4">
+                        <p className="text-xl text-foreground leading-relaxed max-w-4xl mx-auto mt-4">
                           Our fully agentic workflow makes catastrophe risk modeling{" "}
                           <strong className="font-semibold text-foreground">fast</strong>,{" "}
                           <strong className="font-semibold text-foreground">easy</strong>, and{" "}
