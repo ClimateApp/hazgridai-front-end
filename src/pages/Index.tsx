@@ -281,21 +281,11 @@ const Index = () => {
                           <Card className="p-8 md:p-12 h-full">
                             <h3 className="text-2xl font-semibold text-foreground mb-3">Live wildfire simulation</h3>
                             <p className="text-lg text-foreground leading-relaxed">
-                              Draw a fire on the map — or simply name a California city — and interrogate it in plain
-                              language. Our physics-based HazFire engine simulates spread under real or hypothetical
-                              weather with suppression and ember spotting, prices structure losses, and maps evacuation
-                              access. Each 24-hour scenario runs in 2.5–3.5 minutes, and the engine reproduces the
-                              observed footprint of the January 2025 Palisades Fire. NIST puts the annualized economic
-                              burden of wildfire at $71–348 billion (
-                              <a
-                                href="https://www.nist.gov/publications/costs-and-losses-wildfires"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline hover:text-foreground"
-                              >
-                                ref
-                              </a>
-                              ).
+                              Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
+                              language. Our physics-based FireGrid engine simulates spread under real or hypothetical
+                              weather with any selected scenario: suppression, ember spotting, building spread model, and
+                              so on. Then it prices structure losses and maps evacuation access. Each 24-hour scenario
+                              runs in 2.5–3.5 minutes.
                             </p>
                           </Card>
 
