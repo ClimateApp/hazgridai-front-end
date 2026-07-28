@@ -283,7 +283,7 @@ const Index = () => {
                             <p className="text-lg text-foreground leading-relaxed">
                               FloodGrid simulates hurricane-induced coastal flooding with accuracy comparable to
                               sophisticated numerical models, at 135–180× the speed on the same hardware. A Florida-wide
-                              domain runs in 17 seconds — versus ~45 minutes for a conventional numerical solver. A full
+                              domain runs in 17 seconds versus ~45 minutes for a conventional numerical solver. A full
                               10,000-year stochastic catalog completes in hours instead of months. Fast enough to run
                               portfolio-scale flood catalogs on demand, not as a months-long batch job.
                             </p>
