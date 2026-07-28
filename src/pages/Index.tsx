@@ -169,17 +169,17 @@ const Index = () => {
                           Decision-Ready Hazard Intelligence<br />for Climate and Property Risk
                         </h1>
                         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                          <strong className="font-semibold text-foreground">HazGrid ai</strong> combines geospatial
+                          <strong className="font-semibold text-foreground">HazGrid AI</strong> combines geospatial
                           models, regulatory-grade hazard data, and modern AI in an agentic workflow that quantifies
-                          wildfire, flood, and wind risk — from a single address to an entire portfolio. Our
+                          wildfire and flood risk from a single address to an entire portfolio. Our
                           physics-based wildfire engine reproduces real fire behavior — spread, losses, and evacuation
                           — in <strong className="font-semibold text-foreground">minutes</strong>, and our AI
                           coastal-flood model matches sophisticated numerical models at{" "}
                           <strong className="font-semibold text-foreground">130–180× the speed</strong>.
                         </p>
                         <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto mt-4">
-                          Our mission is to make catastrophe-grade risk modeling fast, transparent, and accessible to
-                          everyone who has to make decisions about natural-hazard risk.
+                          Our fully agentic workflow makes catastrophe-grade risk modeling fast, easy, transparent, and
+                          accessible to everyone who has to make decisions about natural-hazard risk.
                         </p>
                       </section>
 
