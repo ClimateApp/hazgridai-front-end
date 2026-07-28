@@ -177,7 +177,7 @@ const Index = () => {
                           coastal-flood model matches sophisticated numerical models at{" "}
                           <strong className="font-semibold text-foreground">130–180× the speed</strong>.
                         </p>
-                        <p className="text-lg text-foreground leading-relaxed max-w-2xl mx-auto mt-4">
+                        <p className="text-xl text-foreground leading-relaxed max-w-2xl mx-auto mt-4">
                           Our fully agentic workflow makes catastrophe-grade risk modeling{" "}
                           <strong className="font-semibold text-foreground">fast</strong>,{" "}
                           <strong className="font-semibold text-foreground">easy</strong>, and{" "}
