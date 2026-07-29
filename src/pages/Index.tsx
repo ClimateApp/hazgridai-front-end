@@ -259,7 +259,7 @@ const Index = () => {
                       </section>
 
                       {/* Divider */}
-                      <div className="mx-auto mb-16 h-1 w-full max-w-2xl rounded-full bg-border" />
+                      <div className="mx-auto mb-16 h-1 w-full max-w-[84rem] rounded-full bg-border" />
 
                       {/* Pillars */}
                       <section className="mb-16">
