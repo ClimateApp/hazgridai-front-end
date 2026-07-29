@@ -263,7 +263,7 @@ const Index = () => {
 
                       {/* Pillars */}
                       <section className="mb-16">
-                        <h2 className="text-4xl font-semibold text-foreground mb-12 text-center">Capabilities</h2>
+                        <h2 className="text-4xl font-semibold text-foreground mb-12 text-center">Hazard Models &amp; Loss Analytics</h2>
                         <div className="space-y-12 max-w-[100rem] mx-auto">
                           <Card className="p-8 md:p-12 h-full">
                             <div className="flex flex-col md:flex-row gap-8 md:items-center">
