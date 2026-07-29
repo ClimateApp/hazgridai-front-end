@@ -15,6 +15,7 @@ import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ianPortfolioLoss from "@/assets/ian-portfolio-loss.png";
 import idaliaFloodResults from "@/assets/Idalia.png";
+import palisadesFireResults from "@/assets/Palisades.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -314,19 +315,30 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">FireGrid: our fire model</h3>
-                            <p className="text-lg text-foreground leading-relaxed">
-                              Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
-                              language. Our physics-based FireGrid engine simulates spread under real or hypothetical
-                              weather with any scenario you choose including suppression, ember spotting, structure-to-structure
-                              spread, and more. It then estimates structure losses and maps evacuation access. Each
-                              24-hour scenario runs in 2.5–3.5 minutes wall-clock time.
-                            </p>
-                            <p className="text-lg text-foreground leading-relaxed mt-4">
-                              The same engine powers stochastic wildfire catalogs: thousands of simulated fire seasons
-                              that produce portfolio-level loss distributions including AAL, EP curves, and PML at key
-                              return periods for insurers and reinsurers pricing and managing wildfire exposure.
-                            </p>
+                            <div className="flex flex-col md:flex-row gap-8 md:items-center">
+                              <div className="md:w-3/5">
+                                <h3 className="text-2xl font-semibold text-foreground mb-3">FireGrid: our fire model</h3>
+                                <p className="text-lg text-foreground leading-relaxed">
+                                  Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
+                                  language. Our physics-based FireGrid engine simulates spread under real or hypothetical
+                                  weather with any scenario you choose including suppression, ember spotting, structure-to-structure
+                                  spread, and more. It then estimates structure losses and maps evacuation access. Each
+                                  24-hour scenario runs in 2.5–3.5 minutes wall-clock time.
+                                </p>
+                                <p className="text-lg text-foreground leading-relaxed mt-4">
+                                  The same engine powers stochastic wildfire catalogs: thousands of simulated fire seasons
+                                  that produce portfolio-level loss distributions including AAL, EP curves, and PML at key
+                                  return periods for insurers and reinsurers pricing and managing wildfire exposure.
+                                </p>
+                              </div>
+                              <div className="md:w-2/5 flex-shrink-0">
+                                <img
+                                  src={palisadesFireResults}
+                                  alt="HazGrid agent output: Palisades fire scenario — fire-perimeter map with fuel context, scenario results, and ground-up loss estimates"
+                                  className="w-full h-auto rounded-xl border border-border shadow-sm"
+                                />
+                              </div>
+                            </div>
                           </Card>
                         </div>
                         <p className="text-sm text-muted-foreground text-center mt-6">
