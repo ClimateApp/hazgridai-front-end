@@ -236,7 +236,7 @@ const Index = () => {
                   <div className="flex-1 overflow-auto">
                     <div className="max-w-[110rem] mx-auto px-6 py-16 md:py-24">
                       {/* Hero */}
-                      <section className="text-center pb-16 mb-16 border-b-4 border-border">
+                      <section className="text-center pb-12">
                         <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-10 md:mb-12 whitespace-normal md:whitespace-nowrap md:mx-[calc(50%_-_50vw)] md:px-8 md:text-[clamp(1.5rem,3vw,2.75rem)]">
                           Decision-Ready Hazard Intelligence for Climate and Property Risk
                         </h1>
@@ -257,6 +257,9 @@ const Index = () => {
                           make decisions about natural-hazard risk.
                         </p>
                       </section>
+
+                      {/* Divider */}
+                      <div className="mx-auto mb-16 h-1 w-full max-w-2xl rounded-full bg-border" />
 
                       {/* Pillars */}
                       <section className="mb-16">
