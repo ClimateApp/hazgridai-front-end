@@ -354,17 +354,17 @@ const Index = () => {
 
                       {/* Who can benefit from HazGrid ai */}
                       <section className="max-w-3xl mx-auto text-center pb-8">
-                        <h2 className="text-2xl font-semibold text-foreground mb-4">Who can benefit from HazGrid ai</h2>
-                        <p className="text-muted-foreground leading-relaxed">
-                          HazGrid ai is designed for organizations that need interactive, faster but precise, more
-                          transparent, and location-specific insight into climate and natural hazard risk. Insurers,
-                          reinsurers, risk managers, lenders, real estate investors, infrastructure owners, utilities,
-                          emergency planners, and government agencies can use HazGrid ai to evaluate wildfire and flood
-                          exposure, estimate potential financial losses, compare risk across properties or portfolios,
-                          and support better decisions around underwriting, pricing, mitigation, investment, and
-                          resilience planning. By combining high-resolution geospatial data, AI-powered hazard
-                          simulation, and advanced loss modeling, HazGrid ai helps stakeholders move from static risk
-                          maps to actionable, property-level intelligence.
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">Who can benefit from HazgridAI</h2>
+                        <p className="text-muted-foreground leading-relaxed text-justify">
+                          HazgridAI is designed for organizations that need interactive, fast yet precise, transparent,
+                          and location-specific insight into climate and natural-hazard risk. Insurers, reinsurers, risk
+                          managers, lenders, real estate investors, infrastructure owners, utilities, emergency planners,
+                          and government agencies can use HazgridAI to evaluate wildfire and flood exposure, estimate
+                          potential financial losses, compare risk across properties and portfolios, and support better
+                          decisions around underwriting, pricing, mitigation, investment, and resilience planning. By
+                          combining high-resolution geospatial data, AI-powered hazard simulation, and advanced loss
+                          modeling, HazgridAI helps stakeholders move from static risk maps to actionable, property-level
+                          intelligence.
                         </p>
                       </section>
 
