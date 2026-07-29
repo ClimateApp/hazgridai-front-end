@@ -237,8 +237,8 @@ const Index = () => {
                     <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
                       {/* Hero */}
                       <section className="text-center pb-16 mb-16 border-b border-border">
-                        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-6">
-                          Decision-Ready Hazard Intelligence<br />for Climate and Property Risk
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-6 whitespace-normal md:whitespace-nowrap md:text-[clamp(1.375rem,2.9vw,2.25rem)]">
+                          Decision-Ready Hazard Intelligence for Climate and Property Risk
                         </h1>
                         <p className="text-xl text-foreground leading-relaxed max-w-5xl mx-auto text-justify">
                           <strong className="font-semibold text-foreground">HazGrid AI</strong> combines geospatial
