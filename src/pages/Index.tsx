@@ -56,7 +56,7 @@ const Index = () => {
   const authDisabled = import.meta.env.VITE_DISABLE_AUTH === "true";
   const isGuest = !authDisabled && !user;
 
-  const guestTabs = ["mission", "validation", "demos"];   // public tabs (no sign-in required)
+  const guestTabs = ["mission", "validation"];   // public tabs (no sign-in required); Demos requires login
 
   useEffect(() => {
     if (!loading && isGuest && !guestTabs.includes(activeTab)) {
@@ -392,7 +392,7 @@ const Index = () => {
                             Watch short demos of each capability, or sign in to run live simulations yourself.
                           </p>
                           <div className="flex flex-wrap items-center justify-center gap-3">
-                            <Button size="lg" onClick={() => setActiveTab("demos")} className="gap-2">
+                            <Button size="lg" onClick={() => handleTabChange("demos")} className="gap-2">
                               <MonitorPlay className="w-4 h-4" />
                               Watch the demos
                             </Button>
