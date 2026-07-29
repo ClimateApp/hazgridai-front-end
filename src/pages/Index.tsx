@@ -234,13 +234,13 @@ const Index = () => {
                   className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden overflow-auto"
                 >
                   <div className="flex-1 overflow-auto">
-                    <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
+                    <div className="max-w-[110rem] mx-auto px-6 py-16 md:py-24">
                       {/* Hero */}
                       <section className="text-center pb-16 mb-16 border-b border-border">
                         <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-10 md:mb-12 whitespace-normal md:whitespace-nowrap md:mx-[calc(50%_-_50vw)] md:px-8 md:text-[clamp(1.5rem,3vw,2.75rem)]">
                           Decision-Ready Hazard Intelligence for Climate and Property Risk
                         </h1>
-                        <p className="text-xl text-foreground leading-relaxed max-w-5xl mx-auto text-justify">
+                        <p className="text-2xl text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify">
                           <strong className="font-semibold text-foreground">HazGrid AI</strong> combines geospatial
                           models, hazard data, and modern AI in an agentic workflow that quantifies
                           wildfire and flood risk from a single address to an entire portfolio. Our
@@ -249,7 +249,7 @@ const Index = () => {
                           coastal-flood model matches sophisticated numerical models at{" "}
                           <strong className="font-semibold text-foreground">135–180× the speed</strong>.
                         </p>
-                        <p className="text-xl text-foreground leading-relaxed max-w-5xl mx-auto text-justify mt-4">
+                        <p className="text-2xl text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify mt-4">
                           Our fully agentic workflow makes catastrophe risk modeling{" "}
                           <strong className="font-semibold text-foreground">fast</strong>,{" "}
                           <strong className="font-semibold text-foreground">easy</strong>, and{" "}
@@ -260,13 +260,13 @@ const Index = () => {
 
                       {/* Pillars */}
                       <section className="mb-16">
-                        <h2 className="text-3xl font-semibold text-foreground mb-10 text-center">Capabilities</h2>
-                        <div className="space-y-8 max-w-6xl mx-auto">
+                        <h2 className="text-4xl font-semibold text-foreground mb-12 text-center">Capabilities</h2>
+                        <div className="space-y-12 max-w-[100rem] mx-auto">
                           <Card className="p-8 md:p-12 h-full">
                             <div className="flex flex-col md:flex-row gap-8 md:items-center">
                               <div className="md:w-3/5">
-                                <h3 className="text-2xl font-semibold text-foreground mb-3">Stochastic catalogs for insurance &amp; reinsurance</h3>
-                                <p className="text-lg text-foreground leading-relaxed">
+                                <h3 className="text-3xl font-semibold text-foreground mb-4">Stochastic catalogs for insurance &amp; reinsurance</h3>
+                                <p className="text-xl text-foreground leading-relaxed">
                                   Just ask. Our conversational AI agent turns plain-language requests into full catastrophe
                                   analytics. The agent runs large stochastic event sets spanning tens of thousands of
                                   simulated years of wildfire and flood, then returns the metrics you need:{" "}
@@ -295,8 +295,8 @@ const Index = () => {
                           <Card className="p-8 md:p-12 h-full">
                             <div className="flex flex-col md:flex-row gap-8 md:items-center">
                               <div className="md:w-3/5">
-                                <h3 className="text-2xl font-semibold text-foreground mb-3">FloodGrid: our flood model</h3>
-                                <p className="text-lg text-foreground leading-relaxed">
+                                <h3 className="text-3xl font-semibold text-foreground mb-4">FloodGrid: our flood model</h3>
+                                <p className="text-xl text-foreground leading-relaxed">
                                   FloodGrid simulates hurricane-induced coastal flooding with accuracy comparable to
                                   sophisticated numerical models, at 135–180× the speed on the same hardware. A Florida-wide
                                   domain runs in 17 seconds versus ~45 minutes for a conventional numerical solver. A full
@@ -317,15 +317,15 @@ const Index = () => {
                           <Card className="p-8 md:p-12 h-full">
                             <div className="flex flex-col md:flex-row gap-8 md:items-center">
                               <div className="md:w-3/5">
-                                <h3 className="text-2xl font-semibold text-foreground mb-3">FireGrid: our fire model</h3>
-                                <p className="text-lg text-foreground leading-relaxed">
+                                <h3 className="text-3xl font-semibold text-foreground mb-4">FireGrid: our fire model</h3>
+                                <p className="text-xl text-foreground leading-relaxed">
                                   Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
                                   language. Our physics-based FireGrid engine simulates spread under real or hypothetical
                                   weather with any scenario you choose including suppression, ember spotting, structure-to-structure
                                   spread, and more. It then estimates structure losses and maps evacuation access. Each
                                   24-hour scenario runs in 2.5–3.5 minutes wall-clock time.
                                 </p>
-                                <p className="text-lg text-foreground leading-relaxed mt-4">
+                                <p className="text-xl text-foreground leading-relaxed mt-4">
                                   The same engine powers stochastic wildfire catalogs: thousands of simulated fire seasons
                                   that produce portfolio-level loss distributions including AAL, EP curves, and PML at key
                                   return periods for insurers and reinsurers pricing and managing wildfire exposure.
@@ -353,9 +353,9 @@ const Index = () => {
 
 
                       {/* Who can benefit from HazGrid ai */}
-                      <section className="max-w-3xl mx-auto text-center pb-8">
-                        <h2 className="text-2xl font-semibold text-foreground mb-4">Who can benefit from HazgridAI</h2>
-                        <p className="text-muted-foreground leading-relaxed text-justify">
+                      <section className="max-w-5xl mx-auto text-center pb-8">
+                        <h2 className="text-3xl font-semibold text-foreground mb-6">Who can benefit from HazgridAI</h2>
+                        <p className="text-lg text-muted-foreground leading-relaxed text-justify">
                           HazgridAI is designed for organizations that need interactive, fast yet precise, transparent,
                           and location-specific insight into climate and natural-hazard risk. Insurers, reinsurers, risk
                           managers, lenders, real estate investors, infrastructure owners, utilities, emergency planners,
@@ -369,9 +369,9 @@ const Index = () => {
                       </section>
 
                       {/* CTA */}
-                      <section className="max-w-3xl mx-auto text-center pb-16">
+                      <section className="max-w-5xl mx-auto text-center pb-16">
                         <div className="rounded-2xl border border-border bg-card p-8 md:p-10">
-                          <h2 className="text-2xl font-semibold text-foreground mb-3">See it in action</h2>
+                          <h2 className="text-3xl font-semibold text-foreground mb-4">See it in action</h2>
                           <p className="text-muted-foreground mb-6">
                             Watch short demos of each capability, or sign in to run live simulations yourself.
                           </p>
