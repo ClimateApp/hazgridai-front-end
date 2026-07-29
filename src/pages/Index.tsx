@@ -234,7 +234,7 @@ const Index = () => {
                   className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden overflow-auto"
                 >
                   <div className="flex-1 overflow-auto">
-                    <div className="max-w-[110rem] mx-auto px-6 py-16 md:py-24">
+                    <div className="max-w-[110rem] mx-auto px-6 pt-4 pb-16 md:pt-6 md:pb-24">
                       {/* Contact info */}
                       <div className="mb-10 -ml-[25px] flex flex-col items-start gap-1.5 text-base text-foreground">
                         <a href="mailto:info@hazgridai.com" className="flex items-center gap-2 hover:text-primary">
