@@ -353,7 +353,8 @@ const Index = () => {
                         </p>
                       </section>
 
-
+                      {/* Divider */}
+                      <div className="mx-auto mb-16 h-1 w-full max-w-[84rem] rounded-full bg-border" />
 
                       {/* Who can benefit from HazGrid ai */}
                       <section className="max-w-5xl mx-auto text-center pb-8">
