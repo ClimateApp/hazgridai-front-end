@@ -369,9 +369,9 @@ const Index = () => {
                       <div className="mx-auto mb-16 h-1 w-full max-w-[84rem] rounded-full bg-border" />
 
                       {/* Who can benefit from HazGrid ai */}
-                      <section className="max-w-5xl mx-auto text-center pb-8">
+                      <section className="text-center pb-8">
                         <h2 className="text-3xl font-semibold text-foreground mb-6">Who can benefit from HazgridAI</h2>
-                        <p className="text-xl text-foreground leading-relaxed text-justify">
+                        <p className="text-xl text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify">
                           HazgridAI is designed for organizations that need interactive, fast yet precise, transparent,
                           and location-specific insight into climate and natural-hazard risk. Insurers, reinsurers, risk
                           managers, lenders, real estate investors, infrastructure owners, utilities, emergency planners,
