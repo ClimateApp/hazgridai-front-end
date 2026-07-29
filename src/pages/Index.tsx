@@ -261,7 +261,7 @@ const Index = () => {
                       {/* Pillars */}
                       <section className="mb-16">
                         <h2 className="text-3xl font-semibold text-foreground mb-10 text-center">Capabilities</h2>
-                        <div className="space-y-8 max-w-5xl mx-auto">
+                        <div className="space-y-8 max-w-6xl mx-auto">
                           <Card className="p-8 md:p-12 h-full">
                             <div className="flex flex-col md:flex-row gap-8 md:items-center">
                               <div className="md:w-3/5">
@@ -286,7 +286,7 @@ const Index = () => {
                                 <img
                                   src={ianPortfolioLoss}
                                   alt="HazGrid agent output: Hurricane Ian portfolio loss estimation — storm-track map with a portfolio loss summary and key findings"
-                                  className="w-full h-auto rounded-xl border border-border shadow-sm"
+                                  className="w-full aspect-[7/4] object-cover object-top rounded-xl border border-border shadow-sm"
                                 />
                               </div>
                             </div>
@@ -308,7 +308,7 @@ const Index = () => {
                                 <img
                                   src={idaliaFloodResults}
                                   alt="HazGrid agent output: Hurricane Idalia baseline flood prediction — storm-track map with a run summary and key findings, AI model runtime 18.9 seconds"
-                                  className="w-full h-auto rounded-xl border border-border shadow-sm"
+                                  className="w-full aspect-[7/4] object-cover object-top rounded-xl border border-border shadow-sm"
                                 />
                               </div>
                             </div>
@@ -335,7 +335,7 @@ const Index = () => {
                                 <img
                                   src={palisadesFireResults}
                                   alt="HazGrid agent output: Palisades fire scenario — fire-perimeter map with fuel context, scenario results, and ground-up loss estimates"
-                                  className="w-full h-auto rounded-xl border border-border shadow-sm"
+                                  className="w-full aspect-[7/4] object-cover object-top rounded-xl border border-border shadow-sm"
                                 />
                               </div>
                             </div>
