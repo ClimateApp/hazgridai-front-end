@@ -236,12 +236,12 @@ const Index = () => {
                   <div className="flex-1 overflow-auto">
                     <div className="max-w-[110rem] mx-auto px-6 py-16 md:py-24">
                       {/* Contact info */}
-                      <div className="mb-10 flex flex-col items-start gap-1.5 text-base text-muted-foreground">
-                        <a href="mailto:info@hazgridai.com" className="flex items-center gap-2 hover:text-foreground">
+                      <div className="mb-10 -ml-[5px] flex flex-col items-start gap-1.5 text-base text-foreground">
+                        <a href="mailto:info@hazgridai.com" className="flex items-center gap-2 hover:text-primary">
                           <Mail className="w-5 h-5" />
                           info@hazgridai.com
                         </a>
-                        <a href="tel:+13026908550" className="flex items-center gap-2 hover:text-foreground">
+                        <a href="tel:+13026908550" className="flex items-center gap-2 hover:text-primary">
                           <Phone className="w-5 h-5" />
                           302-690-8550
                         </a>
