@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ianPortfolioLoss from "@/assets/ian-portfolio-loss.png";
+import idaliaFloodResults from "@/assets/Idalia.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -291,14 +292,25 @@ const Index = () => {
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
-                            <h3 className="text-2xl font-semibold text-foreground mb-3">FloodGrid: our flood model</h3>
-                            <p className="text-lg text-foreground leading-relaxed">
-                              FloodGrid simulates hurricane-induced coastal flooding with accuracy comparable to
-                              sophisticated numerical models, at 135–180× the speed on the same hardware. A Florida-wide
-                              domain runs in 17 seconds versus ~45 minutes for a conventional numerical solver. A full
-                              10,000-year stochastic catalog completes in hours instead of months. Fast enough to run
-                              portfolio-scale flood catalogs on demand, not as a months-long batch job.
-                            </p>
+                            <div className="flex flex-col md:flex-row gap-8 md:items-center">
+                              <div className="md:w-3/5">
+                                <h3 className="text-2xl font-semibold text-foreground mb-3">FloodGrid: our flood model</h3>
+                                <p className="text-lg text-foreground leading-relaxed">
+                                  FloodGrid simulates hurricane-induced coastal flooding with accuracy comparable to
+                                  sophisticated numerical models, at 135–180× the speed on the same hardware. A Florida-wide
+                                  domain runs in 17 seconds versus ~45 minutes for a conventional numerical solver. A full
+                                  10,000-year stochastic catalog completes in hours instead of months. Fast enough to run
+                                  portfolio-scale flood catalogs on demand, not as a months-long batch job.
+                                </p>
+                              </div>
+                              <div className="md:w-2/5 flex-shrink-0">
+                                <img
+                                  src={idaliaFloodResults}
+                                  alt="HazGrid agent output: Hurricane Idalia baseline flood prediction — storm-track map with a run summary and key findings, AI model runtime 18.9 seconds"
+                                  className="w-full h-auto rounded-xl border border-border shadow-sm"
+                                />
+                              </div>
+                            </div>
                           </Card>
 
                           <Card className="p-8 md:p-12 h-full">
