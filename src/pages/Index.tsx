@@ -11,7 +11,7 @@ const napaEnsembleDemo = { url: `${MEDIA_BASE}/demo03_Napa_ensemble_run.mp4` };
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
+import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown, Mail, Phone } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ianPortfolioLoss from "@/assets/ian-portfolio-loss.png";
 import idaliaFloodResults from "@/assets/Idalia.png";
@@ -235,6 +235,18 @@ const Index = () => {
                 >
                   <div className="flex-1 overflow-auto">
                     <div className="max-w-[110rem] mx-auto px-6 py-16 md:py-24">
+                      {/* Contact info */}
+                      <div className="mb-10 flex flex-col items-start gap-1.5 text-base text-muted-foreground">
+                        <a href="mailto:info@hazgridai.com" className="flex items-center gap-2 hover:text-foreground">
+                          <Mail className="w-5 h-5" />
+                          info@hazgridai.com
+                        </a>
+                        <a href="tel:+13026908550" className="flex items-center gap-2 hover:text-foreground">
+                          <Phone className="w-5 h-5" />
+                          302-690-8550
+                        </a>
+                      </div>
+
                       {/* Hero */}
                       <section className="text-center pb-12">
                         <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-10 md:mb-12 whitespace-normal md:whitespace-nowrap md:mx-[calc(50%_-_50vw)] md:px-8 md:text-[clamp(1.5rem,3vw,2.75rem)]">
