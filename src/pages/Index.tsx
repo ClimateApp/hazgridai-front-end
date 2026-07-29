@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, LogOut, Waves, Wind, Flame, Target, Layers, Database, Workflow, MonitorPlay, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { InsuranceProductMock } from "@/components/CapabilityVisuals";
+import ianPortfolioLoss from "@/assets/ian-portfolio-loss.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -281,7 +281,11 @@ const Index = () => {
                                 </p>
                               </div>
                               <div className="md:w-2/5 flex-shrink-0">
-                                <InsuranceProductMock className="w-full" />
+                                <img
+                                  src={ianPortfolioLoss}
+                                  alt="HazGrid agent output: Hurricane Ian portfolio loss estimation — storm-track map with a portfolio loss summary and key findings"
+                                  className="w-full h-auto rounded-xl border border-border shadow-sm"
+                                />
                               </div>
                             </div>
                           </Card>
