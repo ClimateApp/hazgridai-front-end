@@ -408,6 +408,11 @@ const Index = () => {
                           </div>
                         </div>
                       </section>
+
+                      {/* Divider */}
+                      <div className="mx-auto mb-16 h-1 w-full max-w-[84rem] rounded-full bg-border" />
+
+                      {/* New section */}
                     </div>
                   </div>
                 </TabsContent>
