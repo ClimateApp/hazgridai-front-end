@@ -341,7 +341,7 @@ const Index = () => {
                             </div>
                           </Card>
                         </div>
-                        <p className="text-sm text-foreground text-center mt-6">
+                        <p className="text-2xl text-foreground text-center mt-6">
                           Every claim above is benchmarked against recorder data, numerical models, and FEMA maps —{" "}
                           <button onClick={() => setActiveTab("validation")} className="text-primary underline hover:text-primary/80">
                             see the Validation page
