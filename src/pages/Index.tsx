@@ -47,6 +47,60 @@ import palisadesValidationImg from "@/assets/Palisades_fire.png";
 
 export type InsuranceSettings = { deductible: number; policyLimit: number };
 
+type Publication = {
+  image: string;
+  imgWidth: number;
+  imgHeight: number;
+  venue: string;
+  year: string;
+  title: string;
+  authors: string;
+  takeaway: string;
+  href: string;
+};
+
+// Drop a new first-page image in /public/publications and add an entry here.
+const PUBLICATIONS: Publication[] = [
+  {
+    image: "/publications/paper_1.png",
+    imgWidth: 1118,
+    imgHeight: 1518,
+    venue: "J. Waterway, Port, Coastal & Ocean Engineering (ASCE)",
+    year: "2019",
+    title:
+      "New Statistical Approach to Select Coastal Flood-Producing Extratropical Cyclones from a 10,000-Year Stochastic Catalog",
+    authors: "M. Keshtpoor, I. Carnacina, R. M. Yablonsky",
+    takeaway:
+      "A statistical filter isolates flood-producing storms from a 10,000-year catalog, cutting the storms that must be simulated by 78%.",
+    href: "https://www.researchgate.net/publication/330779632_New_Statistical_Approach_to_Select_Coastal_Flood-Producing_Extratropical_Cyclones_from_a_10000-Year_Stochastic_Catalog",
+  },
+  {
+    image: "/publications/paper_2.png",
+    imgWidth: 1228,
+    imgHeight: 1744,
+    venue: "J. Earth Science & Climatic Change",
+    year: "2016",
+    title: "Climate Change Impact on Probability Analysis of Hurricanes",
+    authors: "M. Keshtpoor, M. Osler",
+    takeaway:
+      "A temporal kernel weights recent storms more heavily, letting JPM hurricane hazard analysis reflect a shifting climate.",
+    href: "https://www.researchgate.net/publication/295100535_Climate_Change_Impact_on_Probability_Analysis_of_Hurricanes",
+  },
+  {
+    image: "/publications/paper_3.png",
+    imgWidth: 1218,
+    imgHeight: 1546,
+    venue: "Technical Report · Task Order 099, FEMA Region 4",
+    year: "2015",
+    title:
+      "JPM-OS Probabilistic Model Development — South Florida Flood Insurance Study",
+    authors: "M. Keshtpoor et al.",
+    takeaway:
+      "FEMA-approved JPM-OS storm-surge model documentation underpinning the South Florida coastal flood insurance study.",
+    href: "https://www.researchgate.net/publication/349199070_JPM-OS_Probabilistic_Model_Development_IDS1_Section_5_Task_Order_099_South_Florida_Flood_Insurance_Study",
+  },
+];
+
 const Index = () => {
   const { user, loading, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -56,7 +110,7 @@ const Index = () => {
   const authDisabled = import.meta.env.VITE_DISABLE_AUTH === "true";
   const isGuest = !authDisabled && !user;
 
-  const guestTabs = ["mission", "validation"];   // public tabs (no sign-in required); Demos requires login
+  const guestTabs = ["mission", "validation", "contact"];   // public tabs (no sign-in required); Demos requires login
 
   useEffect(() => {
     if (!loading && isGuest && !guestTabs.includes(activeTab)) {
@@ -115,13 +169,13 @@ const Index = () => {
           {/* Active tab's sidebar + content */}
           <div className="flex flex-1 w-full h-screen">
             {/* The chat components render their own sidebar; we mount only the active one */}
-            <div className={`flex flex-1 w-full flex-col ${["mission", "validation", "demos"].includes(activeTab) ? "" : "md:pl-[16rem]"}`}>
+            <div className={`flex flex-1 w-full flex-col ${["mission", "validation", "demos", "contact"].includes(activeTab) ? "" : "md:pl-[16rem]"}`}>
               <header className="flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
                 <div className="relative px-4 py-3 flex items-center gap-3">
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    {!["mission", "validation", "demos"].includes(activeTab) && <SidebarTrigger className="-ml-1" />}
-                    {["mission", "validation", "demos"].includes(activeTab) && (
-                      <img src={hazgridLogo} alt="HazGrid ai" className="h-16 w-auto -my-2" />
+                    {!["mission", "validation", "demos", "contact"].includes(activeTab) && <SidebarTrigger className="-ml-1" />}
+                    {["mission", "validation", "demos", "contact"].includes(activeTab) && (
+                      <img src={hazgridLogo} alt="HazGrid AI" className="h-16 w-auto -my-2" />
                     )}
                   </div>
                    <div className="flex-1 flex justify-center min-w-0 overflow-x-auto">
@@ -201,6 +255,15 @@ const Index = () => {
                       </TabsList>
                    </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange("contact")}
+                      className={`mr-[68px] rounded-md border px-4 py-1.5 text-2xl transition-colors hover:border-primary ${
+                        activeTab === "contact" ? "border-primary font-bold text-foreground" : "border-border text-foreground"
+                      }`}
+                    >
+                      Contact Us
+                    </button>
                     {isAdmin && (
                       <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}
                               title="Admin console" aria-label="Admin console">
@@ -214,13 +277,13 @@ const Index = () => {
                       </Button>
                     )}
                     {isGuest ? (
-                      <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="gap-2">
-                        <LogOut className="w-4 h-4" />
+                      <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="gap-2 text-xl h-10">
+                        <LogOut className="w-5 h-5" />
                         Sign in
                       </Button>
                     ) : (
-                      <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
-                        <LogOut className="w-4 h-4" />
+                      <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-xl h-10">
+                        <LogOut className="w-5 h-5" />
                         Sign out
                       </Button>
                     )}
@@ -234,25 +297,25 @@ const Index = () => {
                   className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden overflow-auto"
                 >
                   <div className="flex-1 overflow-auto">
-                    <div className="max-w-[110rem] mx-auto px-6 pt-4 pb-16 md:pt-6 md:pb-24">
-                      {/* Contact info */}
-                      <div className="mb-10 -ml-[25px] flex flex-col items-start gap-1.5 text-xl text-foreground">
-                        <a href="mailto:info@hazgridai.com" className="flex items-center gap-2 hover:text-primary">
-                          <Mail className="w-5 h-5" />
-                          info@hazgridai.com
-                        </a>
-                        <a href="tel:+13026908550" className="flex items-center gap-2 hover:text-primary">
-                          <Phone className="w-5 h-5" />
-                          302-690-8550
-                        </a>
-                      </div>
+                    {/* Contact info — top-left, aligned under the logo */}
+                    <div className="px-4 pt-4 ml-10 flex flex-col items-start gap-4 text-xl text-foreground">
+                      <a href="mailto:info@hazgridai.com" className="flex items-center gap-2 hover:text-primary">
+                        <Mail className="w-5 h-5" />
+                        info@hazgridai.com
+                      </a>
+                      <a href="tel:+16505750729" className="flex items-center gap-2 hover:text-primary">
+                        <Phone className="w-5 h-5" />
+                        (650) 575-0729
+                      </a>
+                    </div>
 
+                    <div className="max-w-[110rem] mx-auto px-6 pt-4 pb-16 md:pt-6 md:pb-24">
                       {/* Hero */}
                       <section className="text-center pb-12">
                         <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-10 md:mb-12 whitespace-normal md:whitespace-nowrap md:mx-[calc(50%_-_50vw)] md:px-8 md:text-[clamp(1.5rem,3vw,2.75rem)]">
                           Decision-Ready Hazard Intelligence for Climate and Property Risk
                         </h1>
-                        <p className="text-2xl text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify">
+                        <p className="text-[22px] text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify">
                           <strong className="font-semibold text-foreground">HazGrid AI</strong> combines geospatial
                           models, hazard data, and modern AI in an agentic workflow that quantifies
                           wildfire and flood risk from a single address to an entire portfolio. Our
@@ -261,7 +324,7 @@ const Index = () => {
                           coastal-flood model matches sophisticated numerical models at{" "}
                           <strong className="font-semibold text-foreground">135–180× the speed</strong>.
                         </p>
-                        <p className="text-2xl text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify mt-4">
+                        <p className="text-[22px] text-foreground leading-relaxed max-w-[90rem] mx-auto text-justify mt-4">
                           Our fully agentic workflow makes catastrophe risk modeling{" "}
                           <strong className="font-semibold text-foreground">fast</strong>,{" "}
                           <strong className="font-semibold text-foreground">easy</strong>, and{" "}
@@ -312,9 +375,13 @@ const Index = () => {
                               <div className="md:w-3/5">
                                 <h3 className="text-3xl font-semibold text-foreground mb-4">FloodGrid: our flood model</h3>
                                 <p className="text-xl text-foreground leading-relaxed">
-                                  FloodGrid simulates hurricane-induced coastal flooding with accuracy comparable to
-                                  sophisticated numerical models, at 135–180× the speed on the same hardware. A Florida-wide
-                                  domain runs in 17 seconds versus ~45 minutes for a conventional numerical solver. A full
+                                  FloodGrid is an AI agent workflow that simulates hurricane-induced flooding, calculates
+                                  losses, and perform a full uncertainty analysis. The{" "}
+                                  <strong className="font-semibold text-foreground">trained ML models</strong> in the backend
+                                  simulate the flooding with <strong className="font-semibold text-foreground">accuracy</strong> comparable to
+                                  sophisticated numerical models, at{" "}
+                                  <strong className="font-semibold text-foreground">135–180× the speed</strong> on the same hardware. A Florida-wide
+                                  domain runs in <strong className="font-semibold text-foreground">17 seconds</strong> versus ~45 minutes for a conventional numerical solver. A full
                                   10,000-year stochastic catalog completes in hours instead of months. Fast enough to run
                                   portfolio-scale flood catalogs on demand, not as a months-long batch job.
                                 </p>
@@ -334,16 +401,23 @@ const Index = () => {
                               <div className="md:w-3/5">
                                 <h3 className="text-3xl font-semibold text-foreground mb-4">FireGrid: our fire model</h3>
                                 <p className="text-xl text-foreground leading-relaxed">
-                                  Draw a fire polygon on the base map or simply name a city, and interrogate it in plain
-                                  language. Our physics-based FireGrid engine simulates spread under real or hypothetical
-                                  weather with any scenario you choose including suppression, ember spotting, structure-to-structure
-                                  spread, and more. It then estimates structure losses and maps evacuation access. Each
-                                  24-hour scenario runs in 2.5–3.5 minutes wall-clock time.
+                                  For single fire scenario, draw a fire polygon on the base map or simply name a city for{" "}
+                                  <strong className="font-semibold text-foreground">ensemble simulation</strong>, and interrogate it in{" "}
+                                  <strong className="font-semibold text-foreground">plain language</strong>. Our physics-based FireGrid engine
+                                  simulates spread under <strong className="font-semibold text-foreground">real</strong> or{" "}
+                                  <strong className="font-semibold text-foreground">hypothetical weather</strong> with any scenario you choose including{" "}
+                                  <strong className="font-semibold text-foreground">suppression</strong>,{" "}
+                                  <strong className="font-semibold text-foreground">ember spotting</strong>,{" "}
+                                  <strong className="font-semibold text-foreground">structure-to-structure spread</strong>, and more. It then estimates structure losses and maps evacuation access. Each
+                                  24-hour scenario runs in <strong className="font-semibold text-foreground">2.5–3.5 minutes</strong> wall-clock time.
                                 </p>
                                 <p className="text-xl text-foreground leading-relaxed mt-4">
-                                  The same engine powers stochastic wildfire catalogs: thousands of simulated fire seasons
-                                  that produce portfolio-level loss distributions including AAL, EP curves, and PML at key
-                                  return periods for insurers and reinsurers pricing and managing wildfire exposure.
+                                  The same engine powers <strong className="font-semibold text-foreground">stochastic wildfire catalogs</strong>: thousands of simulated fire seasons
+                                  that produce portfolio-level loss distributions including <strong className="font-semibold text-foreground">AAL</strong>,{" "}
+                                  <strong className="font-semibold text-foreground">EP curves</strong>, and{" "}
+                                  <strong className="font-semibold text-foreground">PML at key return periods</strong> for{" "}
+                                  <strong className="font-semibold text-foreground">insurers</strong> and{" "}
+                                  <strong className="font-semibold text-foreground">reinsurers</strong> pricing and managing wildfire exposure.
                                 </p>
                               </div>
                               <div className="md:w-2/5 flex-shrink-0">
@@ -388,20 +462,26 @@ const Index = () => {
                       <section className="max-w-5xl mx-auto text-center pb-16">
                         <div className="rounded-2xl border border-border bg-card p-8 md:p-10">
                           <h2 className="text-3xl font-semibold text-foreground mb-4">See it in action</h2>
-                          <p className="text-muted-foreground mb-6">
-                            Watch short demos of each capability, or sign in to run live simulations yourself.
+                          <p className="text-foreground text-[22px] mb-6">
+                            Request demos of each model and skill by email to{" "}
+                            <a
+                              href="mailto:info@hazgridai.com"
+                              className="underline hover:text-primary"
+                            >
+                              info@hazgridai.com
+                            </a>
                           </p>
                           <div className="flex flex-wrap items-center justify-center gap-3">
-                            <Button size="lg" onClick={() => handleTabChange("demos")} className="gap-2">
-                              <MonitorPlay className="w-4 h-4" />
+                            <Button size="lg" onClick={() => handleTabChange("demos")} className="gap-2 text-lg h-12 px-6">
+                              <MonitorPlay className="w-5 h-5" />
                               Watch the demos
                             </Button>
                             {isGuest ? (
-                              <Button size="lg" variant="outline" onClick={() => navigate("/auth")}>
+                              <Button size="lg" variant="outline" onClick={() => navigate("/auth")} className="text-lg h-12 px-6">
                                 Sign in for live access
                               </Button>
                             ) : (
-                              <Button size="lg" variant="outline" onClick={() => setActiveTab("live-wildfire")}>
+                              <Button size="lg" variant="outline" onClick={() => setActiveTab("live-wildfire")} className="text-lg h-12 px-6">
                                 Open FireGrid: Event-Based
                               </Button>
                             )}
@@ -412,7 +492,74 @@ const Index = () => {
                       {/* Divider */}
                       <div className="mx-auto mb-16 h-1 w-full max-w-[84rem] rounded-full bg-border" />
 
-                      {/* New section */}
+                      {/* Research & Publications */}
+                      <section className="max-w-[84rem] mx-auto pb-8">
+                        <h2 className="text-4xl font-semibold text-foreground mb-4 text-center">Research &amp; Publications</h2>
+                        <p className="text-muted-foreground text-center mb-10 max-w-3xl mx-auto">
+                          Peer-reviewed papers and technical reports behind our hazard models.
+                        </p>
+                        <ul className="grid gap-5 list-none p-0 m-0 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+                          {PUBLICATIONS.map((pub) => (
+                            <li
+                              key={pub.href}
+                              className="relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-primary focus-within:border-primary"
+                            >
+                              <img
+                                src={pub.image}
+                                width={pub.imgWidth}
+                                height={pub.imgHeight}
+                                loading="lazy"
+                                alt={`First page of ${pub.title}`}
+                                className="aspect-[4/3] w-full object-cover object-top border-b border-border bg-muted"
+                              />
+                              <div className="flex flex-1 flex-col p-5">
+                                <p className="text-sm text-muted-foreground mb-1.5">
+                                  {pub.venue} · {pub.year}
+                                </p>
+                                <h3 className="text-lg font-semibold leading-snug text-foreground">
+                                  <a
+                                    href={pub.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="rounded-sm outline-none after:absolute after:inset-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-primary"
+                                  >
+                                    {pub.title}
+                                  </a>
+                                </h3>
+                                <p className="text-sm text-muted-foreground mt-2">{pub.authors}</p>
+                                <p className="text-sm text-foreground mt-3">{pub.takeaway}</p>
+                                <span className="mt-auto pt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                                  View paper
+                                  <span aria-hidden="true">↗</span>
+                                </span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent
+                  value="contact"
+                  className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden overflow-auto"
+                >
+                  <div className="flex-1 overflow-auto">
+                    <div className="max-w-2xl mx-auto px-6 py-16 md:py-24 text-center">
+                      <h1 className="text-4xl font-semibold tracking-tight text-foreground mb-4">Contact Us</h1>
+                      <p className="text-muted-foreground text-lg mb-12">
+                        Get in touch to learn more about our models or to request a demo.
+                      </p>
+                      <div className="inline-flex flex-col items-start gap-6 text-xl text-foreground">
+                        <a href="mailto:info@hazgridai.com" className="flex items-center gap-3 hover:text-primary">
+                          <Mail className="w-6 h-6" />
+                          info@hazgridai.com
+                        </a>
+                        <a href="tel:+16505750729" className="flex items-center gap-3 hover:text-primary">
+                          <Phone className="w-6 h-6" />
+                          (650) 575-0729
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
@@ -423,24 +570,22 @@ const Index = () => {
                   <div className="flex-1 overflow-auto">
                     <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
                       <section className="text-center mb-12">
-                        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-4">
-                          Validation and Efficiency
-                        </h1>
-                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                          How our models are benchmarked — station-level accuracy against numerical models,
-                          100-year flood extents against FEMA maps, and run-time comparisons.
+                        <p className="text-xl text-foreground max-w-6xl mx-auto text-justify">
+                          How our models are benchmarked: extent accuracy against recorded data for FireGrid,
+                          station-level accuracy against numerical models and 100-year flood extents against FEMA maps
+                          for FloodGrid, run-time comparisons, and loss validation against historical data.
                         </p>
                       </section>
                       <section className="mb-16">
                         <Accordion type="multiple" defaultValue={["fire-accuracy", "accuracy", "speed"]} className="w-full">
                           <AccordionItem value="fire-accuracy" className="border rounded-lg px-6 mb-4">
-                            <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
+                            <AccordionTrigger className="text-[22px] font-semibold text-foreground hover:no-underline">
                               FireGrid Model Accuracy
                             </AccordionTrigger>
-                            <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                            <AccordionContent className="text-lg text-muted-foreground leading-relaxed">
                               <div className="space-y-6 pt-2">
-                                <div className="space-y-4 max-w-4xl">
-                                  <p className="text-base text-foreground">
+                                <div className="space-y-4">
+                                  <p className="text-xl text-foreground">
                                     FireGrid is validated against the January 2025{" "}
                                     <span className="font-semibold">Palisades Fire</span>, which burned roughly
                                     23,000 acres and damaged 6,900+ structures over six days. Starting from the
@@ -467,14 +612,14 @@ const Index = () => {
                             </AccordionContent>
                           </AccordionItem>
                           <AccordionItem value="accuracy" className="border rounded-lg px-6">
-                            <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
+                            <AccordionTrigger className="text-[22px] font-semibold text-foreground hover:no-underline">
                               FloodGrid: AI Coastal Flood Model Accuracy
                             </AccordionTrigger>
-                            <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                            <AccordionContent className="text-lg text-muted-foreground leading-relaxed">
                               <div className="space-y-8 pt-2">
                                 {/* Intro */}
-                                <div className="space-y-4 max-w-4xl">
-                                  <p className="text-base text-foreground">
+                                <div className="space-y-4">
+                                  <p className="text-xl text-foreground">
                                     Coastal flooding during hurricanes is the result of the combined effects of{" "}
                                     <span className="font-semibold">storm surge, tide, and waves</span>. In practice,
                                     coastal water level can be viewed as the superposition of these components:
@@ -764,10 +909,10 @@ const Index = () => {
                             </AccordionContent>
                           </AccordionItem>
                           <AccordionItem value="speed" className="border rounded-lg px-6 mt-4">
-                            <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline">
+                            <AccordionTrigger className="text-[22px] font-semibold text-foreground hover:no-underline">
                               AI Coastal Flood Model Run-time Speed
                             </AccordionTrigger>
-                            <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                            <AccordionContent className="text-lg text-muted-foreground leading-relaxed">
                               <div className="space-y-6 pt-2">
                                 <p className="text-base text-foreground leading-relaxed">
                                   The computational time of coastal flood simulation for one single hurricane and for
