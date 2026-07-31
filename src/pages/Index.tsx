@@ -642,7 +642,7 @@ const Index = () => {
                                       worsen total flooding impacts and structural damages.
                                     </li>
                                   </ul>
-                                  <p className="text-base text-foreground pt-2">
+                                  <p className="text-xl text-foreground pt-2">
                                     To evaluate model accuracy and precision, first we compare the AI model against the
                                     numerical model at coastal stations across Florida. Then we compare the AI 100-year
                                     flood extend against FEMA 100-year map.
@@ -652,7 +652,7 @@ const Index = () => {
                                 {/* Divider */}
                                 <div className="border-t border-border" />
 
-                                <p className="text-base text-foreground leading-relaxed">
+                                <p className="text-xl text-foreground leading-relaxed">
                                   <span className="font-semibold">AI model accuracy vs Numerical model:</span> Here the
                                   flood levels (surge and water levels) at 7 coastal stations are compared across
                                   Florida coastline. The comparison is made on test (or held-out) set. Note that the
@@ -666,14 +666,14 @@ const Index = () => {
                                 {/* Divider */}
                                 <div className="border-t border-border" />
 
-                                <p className="text-base text-foreground leading-relaxed">
+                                <p className="text-xl text-foreground leading-relaxed">
                                   <span className="font-semibold">AI model flood extent vs FEMA map:</span> Here the
                                   100-year flood extends are shown for FEMA (green raster) and our AI coastal flood
                                   model (red dots). We also show sample flood levels (total water level (TWL) = surge +
                                   tide + wave) to validate the 100-year water levels. Note: FEMA flood map includes both
                                   coastal and inland flood.
                                 </p>
-                                <p className="text-base text-foreground leading-relaxed">
+                                <p className="text-xl text-foreground leading-relaxed">
                                   Hover on the asterisks to see the point-wise comparison.
                                 </p>
 
@@ -914,7 +914,7 @@ const Index = () => {
                             </AccordionTrigger>
                             <AccordionContent className="text-lg text-muted-foreground leading-relaxed">
                               <div className="space-y-6 pt-2">
-                                <p className="text-base text-foreground leading-relaxed">
+                                <p className="text-xl text-foreground leading-relaxed">
                                   The computational time of coastal flood simulation for one single hurricane and for
                                   the entire State of Florida using <span className="font-semibold">4 CPUs</span>{" "}
                                   reveals the major advantage of AI simulation. A traditional numerical simulation may
@@ -947,7 +947,7 @@ const Index = () => {
                                   Florida. We have a clear plan to reduce the AI computational time to under{" "}
                                   <span className="font-semibold">1 sec</span> per storm using 4 CPUs.
                                 </p>
-                                <p className="text-base text-foreground leading-relaxed">
+                                <p className="text-xl text-foreground leading-relaxed">
                                   Note that, compared to our AI model, numerical models require much larger RAMs to
                                   upload simulation artifacts. Also, numerical computational time increases significantly
                                   under the following scenarios due to Courant number restriction: 1) strong hurricanes,
