@@ -31,7 +31,7 @@ import FloodChat from "@/components/FloodChat";
 
 import CoastalLive from "@/components/CoastalLive";
 import LiveWildfire from "@/components/LiveWildfire";
-import WildfireChat from "@/components/WildfireChat";
+import StochasticCatalog from "@/components/StochasticCatalog";
 import StationMap from "@/components/StationMap";
 import FemaComparisonMap from "@/components/FemaComparisonMap";
 import miamiFemaAi01 from "@/assets/miami-fema-ai-01.png";
@@ -1049,9 +1049,14 @@ const Index = () => {
                  </TabsContent>
                   <TabsContent
                     value="wildfire"
-                    className="flex-1 m-0 data-[state=active]:flex data-[state=inactive]:hidden"
+                    className="flex-1 m-0 flex-col overflow-auto data-[state=active]:flex data-[state=inactive]:hidden"
                   >
-                    <WildfireChat />
+                    {/* FireRisk (WildfireChat) was removed from this tab on 2026-08-05: it is a
+                        per-point raster LOOKUP, not a stochastic event model — no event set, so
+                        no genuine portfolio OEP/AEP, and its per-property return-period losses
+                        are not additive across a book. The component still exists and can be
+                        re-mounted here or on its own tab. */}
+                    <StochasticCatalog />
                   </TabsContent>
                   <TabsContent
                     value="live-wildfire"
