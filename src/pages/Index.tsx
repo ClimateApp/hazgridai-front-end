@@ -110,7 +110,7 @@ const Index = () => {
   const authDisabled = import.meta.env.VITE_DISABLE_AUTH === "true";
   const isGuest = !authDisabled && !user;
 
-  const guestTabs = ["mission", "validation", "contact"];   // public tabs (no sign-in required); Demos requires login
+  const guestTabs = ["mission", "contact"];   // public tabs (no sign-in required); Demos and Validation require login
 
   useEffect(() => {
     if (!loading && isGuest && !guestTabs.includes(activeTab)) {
@@ -432,7 +432,7 @@ const Index = () => {
                         </div>
                         <p className="text-[22px] text-foreground text-center mt-6">
                           Every claim above is benchmarked against recorder data, numerical models, and FEMA maps —{" "}
-                          <button onClick={() => setActiveTab("validation")} className="text-primary underline hover:text-primary/80">
+                          <button onClick={() => handleTabChange("validation")} className="text-primary underline hover:text-primary/80">
                             see the Validation page
                           </button>
                           .
